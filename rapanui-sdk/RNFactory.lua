@@ -150,15 +150,14 @@ function RNFactory.init()
         contentHeight = lheight
 
     end
-=======
 
-    --if we have to stretch graphics to screen
-    if config.stretch == true then
-        RNFactory.screen.viewport:setSize(0, 0, lwidth, lheight)
-        RNFactory.screen.viewport:setScale(config.graphicsDesign.w, -config.graphicsDesign.h)
-    end
 
->>>>>>> 47814d98bf32612fe83ce4f2957d43d6e910c75a
+   --if we have to stretch graphics to screen
+    --if config.stretch == true then
+    --    RNFactory.screen.viewport:setSize(0, 0, lwidth, lheight)
+    --    RNFactory.screen.viewport:setScale(config.graphicsDesign.w, -config.graphicsDesign.h)
+    --end
+
 
     RNInputManager.setGlobalRNScreen(screen)
 end

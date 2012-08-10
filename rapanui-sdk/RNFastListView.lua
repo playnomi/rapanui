@@ -103,7 +103,7 @@ function RNFastListView:init()
 
 
     --set listeners
-    self.timerListener = RNMainThread.addTimedAction(10, self.step)
+    self.timerListener = RNMainThread.addTimedAction(.01, self.step)
     self.touchListener = RNListeners:addEventListener("touch", self.touchEvent)
     --self.enterFrameListener = RNListeners:addEventListener("enterFrame", self)
 
