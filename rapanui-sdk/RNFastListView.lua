@@ -1,3 +1,4 @@
+
 --[[
 --
 -- RapaNui
@@ -12,7 +13,7 @@
 -- Moai (http://getmoai.com/) and RapaNui in the credits of your program.
 ]]
 
-RNListView = {}
+RNFastListView = {}
 
 
 --since RapaNui touch listener doesn't return the target as the enterFrame does,
@@ -55,14 +56,14 @@ end
 
 
 
-function RNListView:new(o)
-    local tab = RNListView:innerNew(o)
+function RNFastListView:new(o)
+    local tab = RNFastListView:innerNew(o)
     local proxy = setmetatable({}, { __newindex = fieldChangedListener, __index = fieldAccessListener, __object = tab })
     return proxy, tab
 end
 
 
-function RNListView:innerNew(o)
+function RNFastListView:innerNew(o)
 
     o = o or {
         name = "",
@@ -70,7 +71,7 @@ function RNListView:innerNew(o)
         elements = {},
         x = 0,
         y = 0,
-        movedCallback = nil,
+        cellForRowAtIndexPath = nil,
         --
         timerListener = nil,
         enterFrameListener = nil,
@@ -83,13 +84,15 @@ function RNListView:innerNew(o)
         isScrollingY = false,
         --
         isChooseDone = false,
+        cells = {},
+        currentVisibleCells = {}
     }
     setmetatable(o, self)
     self.__index = self
     return o
 end
 
-function RNListView:init()
+function RNFastListView:init()
     SELF = self
     --set default values if nil
     if self.options.cellH == nil then self.options.cellH = 50 end
@@ -98,23 +101,54 @@ function RNListView:init()
     if self.options.minY == nil then self.options.minY = 0 end
     if self.options.maxY == nil then self.options.maxY = 100 end
 
-    --organize items
-    for i = 1, table.getn(self.elements), 1 do
-        self.elements[i].object.x = self.x + self.elements[i].offsetX
-        self.elements[i].object.y = self.y + i * self.options.cellH + self.elements[i].offsetY - self.options.cellH
-    end
+
     --set listeners
     self.timerListener = RNMainThread.addTimedAction(10, self.step)
     self.touchListener = RNListeners:addEventListener("touch", self.touchEvent)
     --self.enterFrameListener = RNListeners:addEventListener("enterFrame", self)
+
 end
 
+function RNFastListView:drawCells()
 
---function RNListView:enterFrame()
-function RNListView.step()
+    local elementSize = self.getListSize()
+
+    print ("elementSize", elementSize)
+
+   -- local height = MOAIEnvironment.verticalResolution
+
+        local height = contentHeight
+
+        minRow = -(math.floor(SELF.y / SELF.options.cellH)) + 1
+        maxRow = -(math.floor((SELF.y-height) / SELF.options.cellH)) + 1
+
+        if (minRow < 1) then
+            minRow = 1
+        end
+
+        print ("min row", minRow, "max row", maxRow)
+
+        for i = minRow, maxRow do
+
+            self.elements[i] = self.cellForRowAtIndexPath(i)
+
+        end
+
+        --organize items
+        --for i = 1, table.getn(self.elements), 1 do
+        
+        for i = minRow, maxRow do    
+            self.elements[i].object.x = self.x + self.elements[i].offsetX
+            self.elements[i].object.y = self.y + i * self.options.cellH + self.elements[i].offsetY - self.options.cellH
+        end
+
+
+end
+
+--function RNFastListView:enterFrame()
+function RNFastListView.step()
     if SELF ~= nil and SELF.canScrollY == true then
-      
-    
+        
         if SELF.deltay > 0 then 
             SELF.deltay = SELF.deltay - 0.2 
         end
@@ -137,13 +171,20 @@ function RNListView.step()
         if SELF.deltay > 0 and SELF.y < SELF.options.maxY + 100 then
            --print("set y less than max", SELF.deltay)
             SELF.y = SELF.y + SELF.deltay
+         
+        if (SELF.isTouching == true) then
+            --SELF.deltay = 0
+        end
 
         elseif SELF.deltay <= 0 and SELF.y > SELF.options.minY - 100 then            
             
             if (SELF.deltay ~= 0) then
-                --print("list enter frame", SELF.deltay)
                 SELF.y = SELF.y + SELF.deltay
-               
+            
+                if (SELF.isTouching == true) then
+                    --SELF.deltay = 0
+                end
+
             end
         end
 
@@ -154,24 +195,19 @@ function RNListView.step()
 
         if SELF.y > SELF.options.maxY and SELF.isTouching == false then
             
-
             if (SELF.y - SELF.options.maxY > SELF.options.cellH/2) then
 
                 -- trigger the callback here
                 if SELF.options.callback ~= nil then
                     SELF.options.callback("reload")
-                    SELF.canScrollY = false
                 end
             end
-
 
             SELF.deltay = 0
 
             --print("EnterFame: changing y ", SELF.deltay)
             SELF.y = SELF.y - (SELF.options.maxY + SELF.y) / 20
         end
-
-
         if SELF.y < SELF.options.minY and SELF.isTouching == false then
             --print("EnterFame: changing y plac 2 ", SELF.options.minY, "self.y", SELF.y)
             SELF.deltay = 0
@@ -185,7 +221,7 @@ function RNListView.step()
     end
 end
 
-function RNListView.touchEvent(event)
+function RNFastListView.touchEvent(event)
     local self = SELF
     if event.phase == "began" and self ~= nil then
         self.tmpY = event.y
@@ -196,7 +232,7 @@ function RNListView.touchEvent(event)
     if event.phase == "moved" and self ~= nil then
         self.deltay = event.y - self.tmpY
         if self.canScrollY == true then
-            self.tmpY = event.y
+            self.tmpY = event.y            
         end
     end
 
@@ -219,7 +255,7 @@ function RNListView.touchEvent(event)
 end
 
 
-function RNListView:setX(value)
+function RNFastListView:setX(value)
     for i, v in ipairs(self.elements) do
         if v.object ~= nil then
             v.object.x = self.x + self.elements[i].offsetX
@@ -228,24 +264,209 @@ function RNListView:setX(value)
     self.options.x = value
 end
 
-function RNListView:setY(value)
-    
-    for i, v in ipairs(self.elements) do
-        if v.object ~= nil then
-            v.object.y = self.y + i * self.options.cellH + self.elements[i].offsetY - self.options.cellH
-        end
+function RNFastListView:jumpToLetter(letter)
+
+    for i, v in pairs(self.elements) do
+        self.elements[i].object:remove()
+        self.elements[i] = nil
     end
+    
+    print("all elements removed")
+    
+    -- get the letter index
+
+    print("letter", letter)
+    print("min value", self.options.minY)
+
+    index = self.letterIndexes[letter]
+
+    print ("jump to index", self.letterIndexes[letter])
+    print ("jump to y", - index * self.options.cellH)
+
+    self.y = - index * self.options.cellH
+
+    local elementSize = self.getListSize()
+
+    print ("elementSize", elementSize)
+
+    --local height = MOAIEnvironment.verticalResolution
+
+    local height = contentHeight
+
+    print("current y", self.y, SELF.y)
+
+    minRow = -(math.floor(SELF.y / SELF.options.cellH)) + 1
+    maxRow = -(math.floor((SELF.y-height) / SELF.options.cellH)) + 1
+
+    if maxRow > elementSize then
+        maxRow = elementSize
+        minRow = math.floor(maxRow - height/SELF.options.cellH)
+    end
+
+    print ("min row", minRow, "max row", maxRow)
+
+    for i = minRow, maxRow do
+        self.elements[i] = self.cellForRowAtIndexPath(i)
+    end
+
+    --organize items
+    --for i = 1, table.getn(self.elements), 1 do
+    
+    for i = minRow, maxRow do
+        self.elements[i].object.x = self.x + self.elements[i].offsetX
+        self.elements[i].object.y = self.y + i * self.options.cellH + self.elements[i].offsetY - self.options.cellH
+    end
+
+end
+
+--lastDeltay = 0 
+
+function RNFastListView:setY(value)
+    
+    -- need to check the value and see if it is higher than the max
+    --local height = MOAIEnvironment.verticalResolution
+    local height = contentHeight
+
+    minRow = -(math.floor(self.y / self.options.cellH)) + 1
+    maxRow = -(math.floor((self.y-height) / self.options.cellH)) + 1
+
+    minRow = minRow - 1
+    --maxRow = maxRow + 1
+
+
+    if (minRow < 1) then
+        minRow = 1
+    end
+
+    if (maxRow > self.options.getListSizeFunction()) then
+
+        maxRow = self.options.getListSizeFunction()
+
+    end
+
+    if (self.deltay < 0 ) then
+    
+        higherNeeded = false
+    
+        for i, v in pairs(self.elements) do
+        
+            local newY = self.y + i * self.options.cellH + self.elements[i].offsetY - self.options.cellH
+    
+            if (newY < 0 and maxRow <= self.options.getListSizeFunction()) then
+                higherNeeded = true                
+                lowerIndex = i
+                --lowerIndex = minRow
+            else
+                if v.object ~= nil then
+                    v.object.y = newY
+                end
+            end
+            
+        end
+        
+            if (higherNeeded == true) then
+        
+                nextRow = maxRow+1
+
+                if (self.elements[nextRow] == nil) then
+
+                    self.elements[nextRow] = self.cellForRowAtIndexPath(nextRow)
+
+                    if (self.elements[nextRow] ~= nil and self.elements[lowerIndex] ~= nil) then
+
+                        print("higher needed remove: ", lowerIndex)
+                        print("higher needed add: ", nextRow)
+                
+                        self.elements[lowerIndex].object:remove()
+                        self.elements[lowerIndex] = nil
+
+                        self.elements[nextRow].object.y = self.y + (nextRow) * self.options.cellH + self.elements[nextRow].offsetY - self.options.cellH
+                    
+                    end
+
+                end
+
+            end
+
+            -- base case should have no nil cells
+            for i=minRow, maxRow do
+
+                if self.elements[i] == nil then
+
+                    self.elements[i] = self.cellForRowAtIndexPath(i)
+
+                end
+
+            end
+
+    elseif (self.deltay > 0) then
+    
+        lowerNeeded = false
+
+        for i, v in pairs(self.elements) do
+
+           local newY = self.y + i * self.options.cellH + self.elements[i].offsetY - self.options.cellH
+    
+            if (newY > (height + self.options.cellH) and minRow > 1) then
+                lowerNeeded = true
+                higherIndex = i
+            else
+                if v.object ~= nil then
+                    v.object.y = newY
+                end
+            end
+        
+        end
+    
+        if (lowerNeeded == true) then
+            
+            nextRow = minRow - 1
+
+            if (self.elements[nextRow] == nil) then
+
+                self.elements[nextRow] = self.cellForRowAtIndexPath(nextRow)
+
+                if (self.elements[minRow-1] == nil) and (self.elements[maxRow+1] ~= nil) then
+
+                    print("lower needed remove: ", higherIndex)
+                    print("lower needed add: ", nextRow)
+
+                    self.elements[maxRow+1].object:remove()
+                    self.elements[maxRow+1] = nil
+
+                    self.elements[nextRow].object.y = self.y + (nextRow) * self.options.cellH + self.elements[nextRow].offsetY - self.options.cellH
+                    
+                end
+            end
+        end
+
+        -- base case should have no nil cells
+
+        for i=minRow, maxRow do
+
+            if self.elements[i] == nil then
+
+                self.elements[i] = self.cellForRowAtIndexPath(i)
+
+            end
+
+        end
+
+        
+            
+    end
+        
     self.options.y = value
 end
 
-function RNListView:remove()
+function RNFastListView:remove()
     --RNListeners:removeEventListener("enterFrame", self.enterFrameListener)
     RNMainThread.removeAction(self.timerListener)    
     RNListeners:removeEventListener("touch", self.touchListener)
    
-     for i, v in ipairs(self.elements) do
-        
-          if v.object ~= nil then
+     for i, v in pairs(self.elements) do
+
+        if v.object ~= nil then
             v.object:remove()
         end
     end
@@ -258,15 +479,15 @@ end
 
 -- elements actions
 
-function RNListView:getElement(value)
+function RNFastListView:getElement(value)
     return self.elements[value]
 end
 
-function RNListView:getSize()
+function RNFastListView:getSize()
     return table.getn(self.elements)
 end
 
-function RNListView:insertElement(element, number)
+function RNFastListView:insertElement(element, number)
     if number ~= nil then
         --the element is add to the end of the list if param number is > of the list size
         if number > self:getSize() then
@@ -285,13 +506,13 @@ function RNListView:insertElement(element, number)
     end
 end
 
-function RNListView:removeElement(removeRNObject, number)
+function RNFastListView:removeElement(removeRNObject, number)
    
-    print("calling remove element")
-      if number ~= nil then
+    if number ~= nil then
         if number > self:getSize() then
             if removeRNObject == true then
                 self.elements[self:getSize()].object:remove()
+                
             end
             self.elements[self:getSize()] = nil
         end
@@ -306,14 +527,16 @@ function RNListView:removeElement(removeRNObject, number)
         end
     else
         if removeRNObject == true then
+        
             self.elements[self:getSize()].object:remove()
+
         end
         self.elements[self:getSize()] = nil
     end
 end
 
 
-function RNListView:swapElements(n1, n2)
+function RNFastListView:swapElements(n1, n2)
     local tempn1 = self.elements[n1]
     local tempn2 = self.elements[n2]
 
@@ -322,7 +545,7 @@ function RNListView:swapElements(n1, n2)
 end
 
 
-function RNListView:getObjectByNumber(value)
+function RNFastListView:getObjectByNumber(value)
     local o
     for i = 1, self:getSize() do
         if i == value then
@@ -334,7 +557,7 @@ function RNListView:getObjectByNumber(value)
 end
 
 
-function RNListView:getNumberByObject(value)
+function RNFastListView:getNumberByObject(value)
     local n
     for i = 1, self:getSize() do
         if self.elements[i].object == value then
@@ -347,18 +570,18 @@ end
 
 --
 
-function RNListView:getType()
-    return "RNListView"
+function RNFastListView:getType()
+    return "RNFastListView"
 end
 
 
-function RNListView:setAlpha(value)
+function RNFastListView:setAlpha(value)
     for i, v in ipairs(self.elements) do
         v.object:setAlpha(value)
     end
 end
 
-function RNListView:setVisibility(value)
+function RNFastListView:setVisibility(value)
     for i, v in ipairs(self.elements) do
         v.object.visible = value
     end
@@ -366,16 +589,16 @@ end
 
 
 
---mocks for groupAdd (Yes, RNListViews can be added to RNGroups ^^)
+--mocks for groupAdd (Yes, RNFastListViews can be added to RNGroups ^^)
 
 
-function RNListView:setIDInGroup()
+function RNFastListView:setIDInGroup()
     --mocked for group adding see RNGroup
 end
 
-function RNListView:setLevel()
+function RNFastListView:setLevel()
     --mocked for group adding see RNGroup
 end
 
 
-return RNListView
+return RNFastListView

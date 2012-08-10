@@ -46,19 +46,23 @@ function RNScreen:setName(name)
 end
 
 function RNScreen:initWith(width, height, screenWidth, screenHeight)
-    self.width = width
-    self.height = height
-    self.viewport = MOAIViewport.new()
-    self.viewport:setSize(screenWidth, screenHeight)
-    self.viewport:setScale(width, -height)
-    self.viewport:setOffset(-1, 1)
-    self.layer = MOAILayer2D.new()
-    self.layer:setViewport(self.viewport)
+    
+            
+        self.width = width
+        self.height = height
+        self.viewport = MOAIViewport.new()
+        self.viewport:setSize(0,0, screenWidth, screenHeight)
+        self.viewport:setScale(width, -height)
+        self.viewport:setOffset(-1, 1)
+    
+        self.layer = MOAILayer2D.new()
+        self.layer:setViewport(self.viewport)
 
-    self.mainPartition = MOAIPartition.new()
-    self.layer:setPartition(self.mainPartition)
+        self.mainPartition = MOAIPartition.new()
+        self.layer:setPartition(self.mainPartition)
 
-    MOAISim.pushRenderPass(self.layer)
+        MOAISim.pushRenderPass(self.layer)
+
 end
 
 function RNScreen:addRNObject(object, mode)
@@ -82,15 +86,15 @@ end
 
 function RNScreen:removeRNObject(object)
     self.layer:removeProp(object:getProp())
-    id = object.idInScreen
-    len = table.getn(self.sprites)
-    ind = id
+    local id = object.idInScreen
+    local len = table.getn(self.sprites)
+    local ind = id
     for i = 1, len, 1 do
         if (i == ind) then
             for k = ind + 1, len, 1 do
                 self.sprites[k - 1] = self.sprites[k]
                 self.sprites[k].idInScreen = k - 1
-				self.sprites[k]:getProp().rnObjectId = k - 1
+                self.sprites[k]:getProp().rnObjectId = k - 1
             end
             self.sprites[len] = nil
         end
@@ -100,22 +104,49 @@ function RNScreen:removeRNObject(object)
     self.numSprites = table.getn(self.sprites)
 end
 
-function RNScreen:getPropWithHighestLevelOn(x, y)
+function RNScreen:getObjectWithHighestLevelOn(x, y)
 
+    local gx = config.graphicsDesign.w
+    local gy = config.graphicsDesign.h
+    local tx = RNFactory.width
+    local ty = RNFactory.height
 
+    local props
+    if config.stretch == true then
+        -- S.S. this code works on android because we are stretching
+        -- things. Graphics design is the wrong value because of 
+        -- top and bottom areas
+        -- content is set in RNFactory
+        local gx = contentlwidth
+        local gy = contentHeight
 
-    local props = { self.mainPartition:propListForPoint(x, y, 0, MOAILayer.SORT_PRIORITY_DESCENDING) }
+        -- for debug
+        --print ("RNFactory.width", RNFactory.width , "RNFactory.height", RNFactory.height)
+        --print ("x", x , "y", y)
+        --print ("gx", gx , "gy", gy)
+        --print ("tx", tx , "ty", ty)
+        --print ("gx / tx", gx / tx, "gy / ty", gy / ty)
+        --print ("x * gx / tx", x * gx / tx , "y * gy / ty", y * gy / ty)
+
+        props = { self.mainPartition:propListForPoint(x * gx / tx, y * gy / ty, 0, MOAILayer.SORT_PRIORITY_DESCENDING) }
+    else
+        props = { self.mainPartition:propListForPoint(x, y, 0, MOAILayer.SORT_PRIORITY_DESCENDING) }
+    end
 
     for i, p in ipairs(props) do
-        if p.touchable then
-            return p
+        for j, k in ipairs(self.sprites) do
+            if k.prop == p then
+                if k.touchable == true then
+                    return k
+                end
+            end
         end
     end
 end
 
 function RNScreen:getRNObjectWithHighestLevelOn(x, y)
-    if self:getPropWithHighestLevelOn(x, y) ~= nil then
-        return self.sprites[self:getPropWithHighestLevelOn(x, y).rnObjectId]
+    if self:getObjectWithHighestLevelOn(x, y) ~= nil then
+        return self:getObjectWithHighestLevelOn(x, y)
     else
         return nil
     end

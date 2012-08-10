@@ -35,6 +35,7 @@ groups = {}
 groups_size = 0
 
 RNFactory.mainGroup = RNGroup:new()
+RNFactory.mainGroup.name = "mainGroup"
 
 RNFactory.stageWidth = 0
 RNFactory.stageHeight = 0
@@ -44,7 +45,33 @@ RNFactory.height = 0
 function RNFactory.init()
 
     local lwidth, lheight, screenlwidth, screenHeight
-    local screenX, screenY = MOAIEnvironment.screenWidth, MOAIEnvironment.screenHeight
+    local screenX, screenY
+
+    if config.landscape == false then
+
+        screenX, screenY = MOAIEnvironment.horizontalResolution, MOAIEnvironment.verticalResolution
+    
+    else
+
+        screenX, screenY = MOAIEnvironment.verticalResolution, MOAIEnvironment.horizontalResolution
+
+    end
+
+    print ("screen resolution", screenX, screenY)
+    
+    if (MOAIEnvironment.osBrand == "iOS") then
+    
+        screenX, screenY = MOAIGfxDevice.getViewSize() 
+
+    else 
+    
+        print("setting screen variables for android using MOAIEnvironment.screenWidth, MOAIEnvironment.screenHeight")
+        --screenX, screenY = MOAIEnvironment.screenWidth, MOAIEnvironment.screenHeight
+        --screenX, screenY = 480, 800
+            
+    end
+
+    print ("new setting screen x", screenX, "screen y", screenY)
 
     if screenX ~= nil then --if physical screen
         lwidth, lheight, screenlwidth, screenHeight = screenX, screenY, screenX, screenY
@@ -52,10 +79,10 @@ function RNFactory.init()
         lwidth, lheight, screenlwidth, screenHeight = config.sizes[config.device][1], config.sizes[config.device][2], config.sizes[config.device][3], config.sizes[config.device][4]
     end
 
-    if config.landscape == true then -- flip lwidths and Hieghts
-        lwidth, lheight = lheight, lwidth
-        screenlwidth, screenHeight = screenHeight, screenlwidth
-    end
+   -- if config.landscape == true then -- flip lwidths and Hieghts
+   --     lwidth, lheight = lheight, lwidth
+   --     screenlwidth, screenHeight = screenHeight, screenlwidth
+   -- end
 
     landscape, device, sizes, screenX, screenY = nil
 
@@ -66,26 +93,74 @@ function RNFactory.init()
 
     --  lwidth, lheight from the SDConfig.lua
 
-    MOAISim.openWindow(name, screenlwidth, screenHeight)
-    RNFactory.screen:initWith(lwidth, lheight, screenlwidth, screenHeight)
+    if config.stretch == true then
 
-    RNFactory.width = lwidth
-    RNFactory.height = lheight
+        print ("now stretching the screen")
 
-    contentlwidth = lwidth
-    contentHeight = lheight
+        TARGET_WIDTH = config.graphicsDesign.w
+        TARGET_HEIGHT = config.graphicsDesign.h
+        DEVICE_WIDTH = lwidth
+        DEVICE_HEIGHT = lheight
 
-    --the resize in x axis is good. The resize in y axis is not, because it's from the bottom to top
-    --so we have to set y offset but if we do so,touch events won't be good they will suffer from this offset
-    --example of resize with 480x800 screen already set on config and resized in view from here.
-    --RNFactory.screen.viewport:setSize(800*800/480,480*480/320)
-    --RNFactory.screen.viewport:setOffset(-1, 0.3) --
+        local gameAspect = TARGET_WIDTH / TARGET_HEIGHT
+        local realAspect = DEVICE_WIDTH / DEVICE_HEIGHT
+
+        if realAspect > gameAspect then
+
+        SCREEN_UNITS_Y = TARGET_HEIGHT
+        SCREEN_UNITS_X = TARGET_HEIGHT * realAspect
+
+        elseif realAspect < gameAspect then
+
+        SCREEN_UNITS_X = TARGET_WIDTH 
+        SCREEN_UNITS_Y = TARGET_WIDTH / realAspect
+
+        else
+
+        SCREEN_UNITS_X = TARGET_WIDTH 
+        SCREEN_UNITS_Y = TARGET_HEIGHT	
+
+        end
+
+        print("openWindow screenlwidth, screenHeight", screenlwidth, screenHeight)
+        print ("SCREEN_UNITS_X", SCREEN_UNITS_X, "SCREEN_UNITS_Y", SCREEN_UNITS_Y)
+
+
+        MOAISim.openWindow(name, screenlwidth, screenHeight)
+        RNFactory.screen:initWith(SCREEN_UNITS_X, SCREEN_UNITS_Y, screenlwidth, screenHeight)
+
+        RNFactory.width = screenlwidth
+        RNFactory.height = screenHeight
+
+        contentlwidth = SCREEN_UNITS_X
+        contentHeight = SCREEN_UNITS_Y
+
+    else
+
+        print ("no screen scretch")
+        print("openWindow screenlwidth, screenHeight", screenlwidth, screenHeight)
+
+        MOAISim.openWindow(name, screenlwidth, screenHeight)
+        RNFactory.screen:initWith(lwidth, lheight, screenlwidth, screenHeight)
+
+        RNFactory.width = lwidth
+        RNFactory.height = lheight
+
+        contentlwidth = lwidth
+        contentHeight = lheight
+
+    end
 
     RNInputManager.setGlobalRNScreen(screen)
 end
 
 -- extra method call to setup the underlying system
 RNFactory.init()
+
+function RNFactory.removeAsset(path)
+    RNGraphicsManager:deallocateGfx(path)
+end
+
 
 function RNFactory.showDebugLines()
     MOAIDebugLines.setStyle(MOAIDebugLines.PROP_MODEL_BOUNDS, 2, 1, 1, 1)
@@ -110,7 +185,27 @@ function RNFactory.createList(name, params)
     return list
 end
 
-function RNFactory.createImage(filename, params)
+function RNFactory.createFastList(name, params)
+    local list = RNFastListView:new()
+    list.name = name
+    list.options = params.options
+    list.elements = params.elements
+    list.x = params.x
+    list.y = params.y
+    if params.canScrollY ~= nil then list.canScrollY = params.canScrollY else list.canScrollY = true end
+    list:init()
+    return list
+end
+
+function RNFactory.createPageSwipe(name, params)
+    local pSwipe = RNPageSwipe:new()
+    pSwipe.options = params.options
+    pSwipe.elements = params.elements
+    pSwipe:init()
+    return pSwipe
+end
+
+function RNFactory.createImage(image, params)
 
     local parentGroup, left, top
 
@@ -138,19 +233,54 @@ function RNFactory.createImage(filename, params)
     end
 
 
-    local image = RNObject:new()
+    local o = RNObject:new()
+    
+    local imageFilenameToLoad = image
+    
+if (MOAIEnvironment.osBrand == "iOS") then
 
-    image:initWith(filename)
+    -- HD asserts
+    --if (MOAIEnvironment.iosRetinaDisplay) then
+        
+        -- we need to add -hd to the filename 
+        imageFilenameToLoad, replacements = string.gsub(image, ".png", "-hd.png")
+            
+   -- else
+        -- just use the filename given
+    
+   -- end
 
-    RNFactory.screen:addRNObject(image)
-    image.x = image.originalWidth / 2 + left
-    image.y = image.originalHeight / 2 + top
+else
+
+    -- HD asserts
+    --if (MOAIEnvironment.screenWidth > 2000) then
+
+        -- we need to add -hd to the filename 
+        imageFilenameToLoad, replacements = string.gsub(image, ".png", "-hd.png")
+        
+    --else
+        -- just use the filename given
+
+    --end
+
+
+end
+   
+    --print ("image to load", imageFilenameToLoad) 
+    
+    local o, deck = o:initWithImage2(imageFilenameToLoad)
+
+    o.x = o.originalWidth / 2 + left
+    o.y = o.originalHeight / 2 + top
+
+    RNFactory.screen:addRNObject(o)
 
     if parentGroup ~= nil then
-        parentGroup:insert(image)
+        parentGroup:insert(o)
     end
 
-    return image
+
+    return o, deck
 end
 
 function RNFactory.createImageFromMoaiImage(moaiImage, params)
@@ -195,6 +325,8 @@ function RNFactory.createImageFromMoaiImage(moaiImage, params)
     return image
 end
 
+
+
 function RNFactory.createMoaiImage(filename)
     local image = MOAIImage.new()
     image:load(filename, MOAIImage.TRUECOLOR + MOAIImage.PREMULTIPLY_ALPHA)
@@ -205,6 +337,10 @@ function RNFactory.createBlankMoaiImage(width, height)
     local image = MOAIImage.new()
     image:init(width, height)
     return image
+end
+
+function RNFactory.createAtlasFromTexturePacker(image, file)
+    RNGraphicsManager:allocateTexturePackerAtlas(image, file)
 end
 
 function RNFactory.createCopyRect(moaiimage, params)
@@ -249,7 +385,7 @@ function RNFactory.createCopyRect(moaiimage, params)
     return image
 end
 
-function RNFactory.createAnim(filename, sx, sy, left, top, scaleX, scaleY)
+function RNFactory.createAnim(image, sizex, sizey, left, top, scaleX, scaleY)
 
     if scaleX == nil then
         scaleX = 1
@@ -269,23 +405,41 @@ function RNFactory.createAnim(filename, sx, sy, left, top, scaleX, scaleY)
 
     local parentGroup = RNFactory.mainGroup
 
-    local image = RNObject:new()
-    image:initAnimWith(filename, sx, sy, scaleX, scaleY)
-    RNFactory.screen:addRNObject(image)
-    image.x = image.originalWidth / 2 + left
-    image.y = image.originalHeight / 2 + top
+
+    local o = RNObject:new()
+    local o, deck = o:initWithAnim2(image, sizex, sizey, scaleX, scaleY)
+
+    o.x = left
+    o.y = top
+
+    local parentGroup = RNFactory.mainGroup
+
+    RNFactory.screen:addRNObject(o)
 
     if parentGroup ~= nil then
-        parentGroup:insert(image)
+        parentGroup:insert(o)
     end
 
-    return image
+
+    return o, deck
 end
 
 function RNFactory.createText(text, params)
 
+    if (text == nil) then
+    
+        text = ""
+    
+    end
+
+
     local top, left, size, font, height, width, alignment
 
+    -- defaults
+    --COOLVETI
+    --font = "COOLVETI"
+    --font = "HelveticaNeue"
+    font = "arial"
     font = "arial-rounded"
     size = 15
     alignment = MOAITextBox.CENTER_JUSTIFY
@@ -322,11 +476,17 @@ function RNFactory.createText(text, params)
     end
 
     local RNText = RNText:new()
-    RNText:initWithText(text, font, size, left, top, width, height, alignment)
+    local gFont
+    RNText, gFont = RNText:initWithText2(text, font, size, width, height, alignment)
     RNFactory.screen:addRNObject(RNText)
     RNFactory.mainGroup:insert(RNText)
-    return RNText
+
+    RNText.x = left
+    RNText.y = top
+
+    return RNText, gFont
 end
+
 
 function RNFactory.createRect(x, y, width, height, params)
     local parentGroup, top, left
