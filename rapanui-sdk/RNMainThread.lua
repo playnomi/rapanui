@@ -23,6 +23,12 @@ function RNMainThread.addTimedAction(delay, func, iterations)
     --delay = 1 / delay
     --timerObject:init(delay, func, iterations)
     --return timerObject
+    --local actionid = RNMainThread.rnThread:runFunction(delay, func, iterations)
+    --return actionid
+    local timerObject = RNTimer:new()
+    delay = 1 / delay
+    timerObject:init(delay, func, iterations)
+    return timerObject
 end
 
 function RNMainThread.suspendAction(actionid)
@@ -36,6 +42,7 @@ end
 function RNMainThread.removeAction(actionid)
   RNMainThread.rnThread:removeAction(actionid)    
 --actionid:remove()
+    actionid:remove()
 end
 
 function RNMainThread.getMainThread()

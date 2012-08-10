@@ -12,14 +12,17 @@
 -- Moai (http://getmoai.com/) and RapaNui in the credits of your program.
 ]]
 
-times = 0
-local background = RNFactory.createImage("images/background-purple.png")
 
-text = RNFactory.createText("Times 0", { size = 10, top = 5, left = 5, width = 200, height = 50 })
 
-local function count()
-    times = times + 1
-    text:setText("Times " .. times)
-end
+--setting up director
+director = RNDirector:new()
 
-local actionId = RNMainThread.addTimedAction(0.5, count)
+
+director:addScene("rapanui-samples/menu/scene1m")
+director:addScene("rapanui-samples/menu/scene2m")
+director:addScene("rapanui-samples/menu/scene3m")
+director:addScene("rapanui-samples/menu/scene4m")
+
+--show scene1m with fade in
+
+director:showScene("rapanui-samples/menu/scene1m","fade")

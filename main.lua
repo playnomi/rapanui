@@ -37,11 +37,22 @@ end      --]]
 
 --require("rapanui-samples/basic/rn-images")
 --require("rapanui-samples/basic/rn-images-rotate")
+--require("rapanui-samples/basic/rn-images-scale")
 --require("rapanui-samples/basic/rn-levels")
 --require("rapanui-samples/basic/rn-text")
 --require("rapanui-samples/basic/rn-shapes")
 --require("rapanui-samples/basic/rn-shapes-penColor")
-require("rapanui-samples/basic/rn-rnListView")
+--require("rapanui-samples/basic/rn-deallocate")
+
+-- Lists
+
+--require("rapanui-samples/lists/rn-rnListView")
+require("rapanui-samples/lists/rn-rnPageSwipe")
+
+
+-- Menu
+--require("rapanui-samples/menu/rn-menu-director")
+--require("rapanui-samples/menu/rn-menu-popup")
 
 
 -- Landscape
@@ -50,6 +61,7 @@ require("rapanui-samples/basic/rn-rnListView")
 
 -- Groups
 
+--require("rapanui-samples/groups/rn-groups-basics")
 --require("rapanui-samples/groups/rn-groups")
 --require("rapanui-samples/groups/rn-map-group")
 
@@ -74,6 +86,11 @@ require("rapanui-samples/basic/rn-rnListView")
 --require("rapanui-samples/transition/rn-transition-move")
 --require("rapanui-samples/transition/rn-transition-rotate")
 --require("rapanui-samples/transition/rn-transition-scale")
+
+--require("rapanui-samples/transition/rn-transition-text-move")
+--require("rapanui-samples/transition/rn-transition-text-alpha")
+--require("rapanui-samples/transition/rn-transition-text-scale")
+--require("rapanui-samples/transition/rn-transition-text-rotate")
 
 --NOTE: now only works on simple 2D maps, still buggy with physics maps
 --require("rapanui-samples/transition/rn-transition-map-alpha")
@@ -123,6 +140,7 @@ require("rapanui-samples/basic/rn-rnListView")
 -- Maps
 
 --require("rapanui-samples/maps/rn-basic-map")
+--require("rapanui-samples/maps/rn-basic-map-properties")
 --require("rapanui-samples/maps/rn-basic-map-alpha")
 --require("rapanui-samples/maps/rn-scrolling-map")
 --require("rapanui-samples/maps/rn-tileset")
@@ -130,6 +148,12 @@ require("rapanui-samples/basic/rn-rnListView")
 --require("rapanui-samples/maps/rn-physics-map-alpha")
 --require("rapanui-samples/maps/rn-scrolling-physics-map")
 
+
+-- Atlases
+--require("rapanui-samples/atlas/rn-atlas-texture-packer")
+
+
 -- These two tests have only text output
 --require("rapanui-samples/maps/rn-tiledmap-parser-xml")
 --require("rapanui-samples/maps/rn-tiledmap-parser-lua")
+

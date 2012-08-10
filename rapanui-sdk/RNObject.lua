@@ -809,6 +809,37 @@ function RNObject:play(sequenceName, speed, repeatTimes, onStop)
     for i = 1, framesInSequence do
         curve:setKey(i, i, i, MOAIEaseType.LINEAR, 1)
     end
+    local rightSequence = self.sequenceList[rightSequenceToPlay]
+    --set sequence values
+    rightSequence.timeRepeated = 0
+    rightSequence.currentFrame = 0
+    if speed ~= nil then rightSequence.speed = speed end
+    if repeatTimes ~= nil then rightSequence.repeatTimes = repeatTimes end
+    if onStop ~= nil then rightSequence.onStop = onStop end
+
+
+    --stop eventual previous animation
+    if self.timer ~= nil then self.timer = nil end
+    if self.curve ~= nil then self.curve = nil end
+
+    --create new timer and stop
+    self.timer = MOAITimer.new()
+    self.timer:setMode(MOAITimer.CONTINUE)
+    --create new curve
+    self.curve = MOAIAnimCurve.new()
+    --assign the curve to the timer
+    self.timer:setCurve(self.curve)
+    self.timer.obj = self
+
+    local timer = self.timer
+    local curve = self.curve
+
+    --create keys
+    local framesInSequence = table.getn(rightSequence.frameOrder)
+    curve:reserveKeys(framesInSequence)
+    for i = 1, framesInSequence do
+        curve:setKey(i, i, i, MOAIEaseType.LINEAR, 1)
+    end
 
     --set timer spans
     timer:setSpan(framesInSequence)

@@ -13,6 +13,8 @@
 ]]
 
 
+
+
 --[[
 	  
 	  SCENES MUST HAVE 
@@ -31,22 +33,33 @@ local sceneGroup = RNGroup:new()
 --init Scene
 function aScene.onCreate()
     --add things to sceneGroup
-    local background = RNFactory.createImage("images/background-green.png", { parentGroup = sceneGroup }); background.x = 160; background.y = 240;
-    local tile1a = RNFactory.createImage("images/tile2.png"); tile1a.x = 160; tile1a.y = 240;
-    local tile1b = RNFactory.createImage("images/tile2.png"); tile1b.x = 100; tile1b.y = 140;
-    local tile1c = RNFactory.createImage("images/tile2.png"); tile1c.x = 260; tile1c.y = 240;
+    local background = RNFactory.createImage("images/background-blue.png", { parentGroup = sceneGroup }); background.x = 160; background.y = 240;
+    local text1 = RNFactory.createText("This is the scene two.", { size = 8, top = 400, left = 50, width = 200, height = 500 })
+    sceneGroup:insert(text1)
+    local button1 = RNFactory.createAnim("images/sceneButtons.png", 128, 64)
+    button1.frame = 1
+    sceneGroup:insert(button1)
+    button1.x = 100; button1.y = 100
 
-    local group1 = RNGroup:new()
-    local group2 = RNGroup:new()
 
-    group1:insert(tile1a)
-    group1:insert(tile1b)
-    group2:insert(tile1c)
-    group1:insert(group2)
 
-    sceneGroup:insert(group1)
+    button1:setOnTouchDown(button1Down)
+
+
+    button1:setOnTouchUp(button1Up)
+
+
     --return sceneGroup
     return sceneGroup
+end
+
+function button1Down(event)
+    event.target.frame = 2
+end
+
+function button1Up(event)
+    event.target.frame = 1
+    director:showScene("rapanui-samples/menu/scene1m","slidetoright")
 end
 
 
