@@ -124,7 +124,10 @@ end
 function RNListView.step()
     if SELF ~= nil then
         if #SELF.elements > 0 then
+     
             if SELF.canScrollY == true then
+               
+       --print("step", SELF.deltay, SELF.y)
                 if SELF.deltay > 0 then SELF.deltay = SELF.deltay - 0.2 end
                 if SELF.deltay < 0 then SELF.deltay = SELF.deltay + 0.2 end
 
@@ -177,6 +180,7 @@ function RNListView.step()
                     end
                 end
 
+
                 --scroll due to postogo
                 if SELF.isToScroll == true then
                     if SELF.y > SELF.postogo then SELF.y = SELF.y - 1 end
@@ -226,9 +230,39 @@ function RNListView.touchEvent(event)
                 self.isTouching = true
                 SELF:callRegisteredFunctions("beganTouch")
                 SELF.beganDelta = event.y - self.y
+                self.olddeltay = 0
                 SELF.removeTimer()
             end
 
+--[[]
+            if event.phase == "moved" and self ~= nil then
+
+                self.deltay = event.y - self.tmpY
+
+                if self.canScrollY == true then
+                    self.tmpY = event.y
+                    SELF:callRegisteredFunctions("movedTouch")
+                    self.scrolled = true
+                      
+                    if SELF.options.callback ~= nil then
+                    
+                        topHeight = 100
+                    
+                    else
+                    
+                        topHeight = contentHeight
+                    
+                    end
+                                                          
+                                                                                              
+                    if SELF.deltay > 0 and SELF.y < SELF.options.maxY + topHeight or SELF.deltay <= 0 and SELF.y > SELF.options.minY - contentHeight then
+                        if self.beganDelta ~= nil then
+                            self.y = event.y - self.beganDelta
+                        end
+                    end
+                end
+            end
+]]--
 
             if event.phase == "moved" and self ~= nil then
                 self.deltay = event.y - self.tmpY
@@ -236,15 +270,35 @@ function RNListView.touchEvent(event)
                     self.tmpY = event.y
                     SELF:callRegisteredFunctions("movedTouch")
                     self.scrolled = true
-                    if SELF.deltay > 0 and SELF.y < SELF.options.maxY + 100 or SELF.deltay <= 0 and SELF.y > SELF.options.minY - 100 then
-                        if self.beganDelta ~= nil then
-                            self.y = event.y - self.beganDelta
+                    if (SELF.deltay > 0 and SELF.y < SELF.options.maxY + 100) then
+                        if self.olddeltay > 0 then
+                            if self.beganDelta ~= nil then
+                                --                                print("               down")
+                                self.y = event.y - self.beganDelta
+                            end
+                        else
+                            --                            print("got new began")
+                            SELF.beganDelta = event.y - self.y
+                        end
+                    end
+                    if (SELF.deltay < 0 and SELF.y > SELF.options.minY - 100) then
+                        if self.olddeltay < 0 then
+                            if self.beganDelta ~= nil then
+                                --                                print("               up")
+                                self.y = event.y - self.beganDelta
+                            end
+                        else
+                            --                            print("got new began")
+                            SELF.beganDelta = event.y - self.y
                         end
                     end
                 end
+                self.olddeltay = self.deltay
             end
 
+
             if event.phase == "ended" and self ~= nil and self.isScrollingY == false and self.isChooseDone == false then
+                print("ended")
                 for i = 1, table.getn(self.elements), 1 do
                     if event.x > self.x and event.x < self.x + self.options.cellW and event.y > self.y + i * self.options.cellH - self.options.cellH and event.y < self.y + i * self.options.cellH + self.options.cellH - self.options.cellH then
                         if self.elements[i].onClick ~= nil and self.scrolled == false then
@@ -261,6 +315,7 @@ function RNListView.touchEvent(event)
         end
     end
     if event.phase == "ended" and self.isScrollingY == true then
+      print("ended")
         self.isScrollingY = false
         self.isTouching = false
         SELF:callRegisteredFunctions("cancelledTouch")
@@ -280,6 +335,8 @@ function RNListView:setX(value)
 end
 
 function RNListView:setY(value)
+   -- print("setY", value)
+
     for i, v in ipairs(self.elements) do
         if v.object ~= nil then
             v.object.y = self.y + i * self.options.cellH + self.elements[i].offsetY - self.options.cellH
