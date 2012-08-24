@@ -165,6 +165,16 @@ function RNGroup:getAllChildren()
     return t
 end
 
+function RNGroup:flattern(value)
+    for i, v in ipairs(self:getAllChildren()) do
+        v:setLevel(value + i)
+    end
+end
+
+function RNGroup:setPriority(value)
+    self:flattern(value)
+end
+
 function RNGroup:innerNew(o)
     o = o or {
         name = "",
@@ -214,6 +224,8 @@ function RNGroup:insert(object, resetTransform)
         object:setLevel(level)
 
         self.levels[level] = level
+
+       -- print("level for object", level)
 
         self.numChildren = self.numChildren + 1
         self.displayObjects[self.numChildren] = object
@@ -328,9 +340,9 @@ function RNGroup:getDelta01(a, b)
 end
 
 function RNGroup:setLevel(value)
-    --TODO: ???
-    --self.prop:setPriority(value)
-    --self.parentGroup:inserLevel(self:getLevel())
+    if self.prop ~= nil then
+        self:setPriority(value)
+    end
 end
 
 function RNGroup:setParentGroup(group)

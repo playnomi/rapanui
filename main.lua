@@ -46,7 +46,7 @@ end      --]]
 
 -- Lists
 
-require("rapanui-samples/lists/rn-rnListView")
+--require("rapanui-samples/lists/rn-rnListView")
 --require("rapanui-samples/lists/rn-rnPageSwipe")
 
 
@@ -134,7 +134,7 @@ require("rapanui-samples/lists/rn-rnListView")
 -- RapaNui sample games:
 
 --require("rapanui-samples/games/brick2d/brick2d")
---require("rapanui-samples/games/SunGolf/SunGolf")
+require("rapanui-samples/games/SunGolf/SunGolf")
 --require("rapanui-samples/games/AngryDogsAgainstMoais/AngryDogsAgainstMoais")
 
 -- Maps
