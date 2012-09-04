@@ -196,16 +196,35 @@ end
 
 function RNGraphicsManager:allocateFont(path, charcodes, size, value)
     local object = {}
-    object.path = path
 
     object.font = MOAIFont.new()
 
---MOAIFont.FONT_AUTOLOAD_KERNING = false
+    --MOAIFont.FONT_AUTOLOAD_KERNING = false
+    --object.font:loadFromTTF(path .. "-" .. tostring(size*2) .. ".TTF", charcodes, size, value)
+    
 
-    object.font:loadFromTTF(path .. ".TTF", charcodes, size, value)
+
+    charcodes = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .,:;!?()&/-'
+    
+    retinaSize  = size*2
+    bmPath      = path .. "-" .. tostring(retinaSize) .. ".fnt"
+
+    print("load font", path)
+    print("font path", bmPath)
+    print("font size", size, "x2", retinaSize)
+
+    object.font:loadFromBMFont(bmPath)
+    object.font:preloadGlyphs ( charcodes, retinaSize )
+
+    --object.font:loadFromBMFont("helvetica-14.fnt")
+    --object.font:preloadGlyphs ( charcodes, 14 )
+
+    --object.font:loadFromBMFont("helvetica-24.fnt")
+    --object.font:preloadGlyphs ( charcodes, 24 )
+
+    object.path = bmPath
     object.sizes = size
     object.isInAtlas = false
-
 
     RNGraphicsManager.gfx[table.getn(RNGraphicsManager.gfx) + 1] = object
 
@@ -234,10 +253,14 @@ function RNGraphicsManager:getDeckByPath(path)
     return d, n
 end
 
-function RNGraphicsManager:getFontByPath(path)
+function RNGraphicsManager:getFontByPath(path, size)
     local d
+
+    retinaSize  = size*2
+    bmPath      = path .. "-" .. tostring(retinaSize) .. ".fnt"
+
     for i, v in ipairs(RNGraphicsManager.gfx) do
-        if v.path == path then
+        if v.path == bmPath then
             d = v.font
         end
     end
@@ -276,6 +299,7 @@ end
 
 function RNGraphicsManager:getAlreadyAllocated(path)
     local p = false
+     
     for i, v in ipairs(RNGraphicsManager.gfx) do
         if v.path == path then
             p = true
@@ -291,6 +315,30 @@ function RNGraphicsManager:getAlreadyAllocated(path)
     end
     return p
 end
+
+
+function RNGraphicsManager:getAlreadyAllocatedFont(path, size)
+    local p = false
+    
+    retinaSize  = size*2
+    bmPath      = path .. "-" .. tostring(retinaSize) .. ".fnt"
+    
+    for i, v in ipairs(RNGraphicsManager.gfx) do
+        if v.path == bmPath then
+            p = true
+        end
+        --if it's in atlas
+        if v.names ~= nil then
+            for j, k in pairs(v.names) do
+                if j == bmPath then
+                    p = true
+                end
+            end
+        end
+    end
+    return p
+end
+
 
 
 return RNGraphicsManager

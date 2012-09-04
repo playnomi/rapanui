@@ -447,9 +447,9 @@ function RNFactory.createText(text, params)
     --COOLVETI
     --font = "COOLVETI"
     --font = "HelveticaNeue"
-    font = "arial"
-    font = "arial-rounded"
-    size = 15
+    font = "Helvetica"
+    --font = "arial-rounded"
+    size = 14
     alignment = MOAITextBox.CENTER_JUSTIFY
     --LEFT_JUSTIFY, CENTER_JUSTIFY or RIGHT_JUSTIFY.
 

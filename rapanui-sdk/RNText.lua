@@ -90,10 +90,9 @@ function RNText:initWithText2(text, font, size, width, height, alignment)
     self.charcodes = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890 .,:;!?()&/-'
     self.fontName = font
 
-
     if type(font) == "string" then
-        if RNGraphicsManager:getAlreadyAllocated(font) then
-            font = RNGraphicsManager:getFontByPath(font)
+        if RNGraphicsManager:getAlreadyAllocatedFont(font, size) then
+            font = RNGraphicsManager:getFontByPath(font, size)
         else
             font = RNGraphicsManager:allocateFont(font, self.charcodes, size, 163)
         end
@@ -109,20 +108,19 @@ function RNText:initWithText2(text, font, size, width, height, alignment)
 
     self.textbox = MOAITextBox.new()
     self.prop = self.textbox
-
     self.text = text
 
     self.textbox:setString(self.text)
     self.textbox:setFont(self.font)
+    self.textbox:setTextSize(size*2)
 
+    --self.textbox:setStyle ( newStyle ( font, 64 ))
     -- S.S. updates for scaling
     CONTENT_SCALE_FACTOR = 1
 
-
     -- multiply it all by 2 since we start with 
     -- retina and then scale down on non-retina devices
-    self.textbox:setTextSize(size*CONTENT_SCALE_FACTOR, 163)
-
+    --self.textbox:setTextSize(size*CONTENT_SCALE_FACTOR, 163)
 
     self.textbox:setRect(0, 0, width, height)
     self.textbox:setAlignment(alignment)
