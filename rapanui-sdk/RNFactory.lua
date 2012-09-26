@@ -53,7 +53,7 @@ function RNFactory.init()
     
     else
 
-        screenX, screenY = MOAIEnvironment.verticalResolution, MOAIEnvironment.horizontalResolution
+        screenX, screenY = MOAIEnvironment.horizontalResolution, MOAIEnvironment.verticalResolution
 
     end
 

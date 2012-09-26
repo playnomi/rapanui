@@ -189,6 +189,8 @@ function RNTransition:run(target, params)
         elseif target:getType() == "RNGroup" then
             for key, object in pairs(target:getAllNonGroupChildren()) do
                 if object:getType() == "RNObject" or object:getType() == "RNText" then
+                    print(key)
+                
                     action = object:getProp():seekColor(alpha, alpha, alpha, alpha, time, mode)
                 elseif object:getType() == "RNMap" then
                     for key2, prop2 in pairs(object:getAllProps()) do

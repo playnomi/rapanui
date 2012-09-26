@@ -201,11 +201,17 @@ function RNGraphicsManager:allocateFont(path, charcodes, size, value)
 
     --MOAIFont.FONT_AUTOLOAD_KERNING = false
     --object.font:loadFromTTF(path .. "-" .. tostring(size*2) .. ".TTF", charcodes, size, value)
-    
 
+ 
+    if (path == "MariAndDavid") then
 
-    charcodes = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .,:;!?()&/-'
+        charcodes = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .,:;!?()&-'
+    else
     
+        charcodes = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .,:;!?()/&-'
+   
+    end
+
     retinaSize  = size*2
     bmPath      = path .. "-" .. tostring(retinaSize) .. ".fnt"
 
