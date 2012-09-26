@@ -291,6 +291,169 @@ end
     return o, deck
 end
 
+function RNFactory.createButton(image, params)
+
+    local parentGroup, left, top
+
+    local top, left, size, font, vAlignment, hAlignment
+
+    local xOffset, yOffset = 0, 0
+
+    font = "arial-rounded.TTF"
+    size = 15
+
+    vAlignment = MOAITextBox.CENTER_JUSTIFY
+    hAlignment = MOAITextBox.CENTER_JUSTIFY
+
+    top = 0
+    left = 0
+
+    if (params ~= nil) then
+
+       if (params.top ~= nil) then
+            top = params.top
+       end
+
+       if (params.left ~= nil) then
+            left = params.left
+       end
+
+       if (params.parentGroup ~= nil) then
+            parentGroup = params.parentGroup
+       else
+            parentGroup = RNFactory.mainGroup
+       end
+
+       if (params.top ~= nil) then
+            top = params.top
+       end
+
+       if (params.left ~= nil) then
+            left = params.left
+       end
+
+       if (params.font ~= nil) then
+            font = params.font
+       end
+
+       if (params.size ~= nil) then
+            size = params.size
+       end
+
+        --[[
+       if (params.height ~= nil) then
+            height = params.height
+       end
+
+       if (params.width ~= nil) then
+            width = params.width
+       end
+       ]] --
+
+if (params.verticalAlignment ~= nil) then
+            vAlignment = params.verticalAlignment
+end
+
+if (params.horizontalAlignment ~= nil) then
+            hAlignment = params.horizontalAlignment
+end
+end
+
+if (params.xOffset ~= nil) then
+        xOffset = params.xOffset
+end
+
+if (params.yOffset ~= nil) then
+        yOffset = params.yOffset
+end
+
+    -- init of default RNButtonImage
+local rnButtonImage = RNObject:new()
+local rnButtonImage, deck = rnButtonImage:initWithImage2(image)
+
+    rnButtonImage.x = rnButtonImage.originalWidth / 2 + left
+    rnButtonImage.y = rnButtonImage.originalHeight / 2 + top
+
+    RNFactory.screen:addRNObject(rnButtonImage)
+
+
+    local rnButtonImageOver
+
+    if params.imageOver ~= nil then
+
+       rnButtonImageOver = RNObject:new()
+       rnButtonImageOver, deck = rnButtonImageOver:initWithImage2(params.imageOver)
+
+        rnButtonImageOver.x = rnButtonImageOver.originalWidth / 2 + left
+        rnButtonImageOver.y = rnButtonImageOver.originalHeight / 2 + top
+
+        rnButtonImageOver:setVisible(false)
+
+        RNFactory.screen:addRNObject(rnButtonImageOver)
+    end
+
+
+    local rnButtonImageDisabled
+
+    if params.imageDisabled ~= nil then
+
+       rnButtonImageDisabled = RNObject:new()
+       rnButtonImageDisabled, deck = rnButtonImageDisabled:initWithImage2(params.imageDisabled)
+
+        rnButtonImageDisabled.x = rnButtonImageDisabled.originalWidth / 2 + left
+        rnButtonImageDisabled.y = rnButtonImageDisabled.originalHeight / 2 + top
+
+        rnButtonImageDisabled:setVisible(false)
+
+        RNFactory.screen:addRNObject(rnButtonImageDisabled)
+    end
+
+    local rnText
+
+    local gFont
+
+    if params.text == nil then
+        params.text = ""
+    end
+
+    rnText = RNText:new()
+    rnText, gFont = rnText:initWithText2(params.text, font, size, rnButtonImage.originalWidth, rnButtonImage.originalHeight, vAlignment, hAlignment)
+
+    RNFactory.screen:addRNObject(rnText)
+    --     RNFactory.mainGroup:insert(rnText)
+    rnText.x = left
+    rnText.y = top
+
+
+
+
+    local rnButton = RNButton:new()
+    rnButton.xOffset = xOffset
+    rnButton.yOffset = yOffset
+    rnButton:initWith(rnButtonImage, rnButtonImageOver, rnButtonImageDisabled, rnText)
+
+
+    if parentGroup ~= nil then
+       parentGroup:insert(rnButton)
+    end
+
+
+
+    rnButton.x = rnButtonImage.originalWidth / 2 + left
+    rnButton.y = rnButtonImage.originalHeight / 2 + top
+
+    if params.onTouchUp ~= nil then
+       rnButton:setOnTouchUp(params.onTouchUp)
+    end
+
+    if params.onTouchDown ~= nil then
+       rnButton:setOnTouchDown(params.onTouchDown)
+    end
+
+
+    return rnButton, deck
+end
+
 function RNFactory.createImageFromMoaiImage(moaiImage, params)
 
     local parentGroup, left, top
