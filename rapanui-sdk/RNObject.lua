@@ -919,11 +919,16 @@ function RNObject:setSize(Sx, Sy)
 end
 
 function RNObject:setLevel(value)
+
     self.prop:setPriority(value)
     self.parentGroup:inserLevel(self:getLevel())
 end
 
 function RNObject:getLevel()
+
+
+    --print("priority for object", self.prop:getPriority())
+
     return self.prop:getPriority()
 end
 
@@ -936,6 +941,9 @@ function RNObject:bringToFront()
 end
 
 function RNObject:putOver(object)
+
+   -- print("putting over object at level",object:getLevel()) 
+
     self.prop:setPriority(object:getLevel() + 1)
     self.parentGroup:inserLevel(self:getLevel())
 end

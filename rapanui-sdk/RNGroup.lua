@@ -166,6 +166,13 @@ function RNGroup:getAllChildren()
 end
 
 function RNGroup:flattern(value)
+
+    if (value == nil) then
+    
+        print ("*************ERROR********* RNGroup:flattern - level is nil")
+
+    end
+
     for i, v in ipairs(self:getAllChildren()) do
         v:setLevel(value + i)
     end
@@ -223,9 +230,16 @@ function RNGroup:insert(object, resetTransform)
 
         object:setLevel(level)
 
+        if (level == nil) then
+    
+            print ("*************ERROR********* RNGroup:inserLevel - level is nil")
+
+        end
+
+
         self.levels[level] = level
 
-       -- print("level for object", level)
+        --print("level for object", level)
 
         self.numChildren = self.numChildren + 1
         self.displayObjects[self.numChildren] = object
@@ -252,6 +266,13 @@ function RNGroup:removeChild(id)
 end
 
 function RNGroup:inserLevel(level)
+
+    if (level == nil) then
+    
+        print ("*************ERROR********* RNGroup:inserLevel - level is nil")
+
+    end
+
     self.levels[level] = level
 end
 

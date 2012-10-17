@@ -328,11 +328,10 @@ function RNFastListView:setY(value)
     local height = contentHeight
 
     minRow = -(math.floor(self.y / self.options.cellH)) + 1
-    maxRow = -(math.floor((self.y-height) / self.options.cellH)) + 1
+    maxRow = -(math.floor((self.y - height) / self.options.cellH)) + 1
 
     minRow = minRow - 1
     --maxRow = maxRow + 1
-
 
     if (minRow < 1) then
         minRow = 1
@@ -352,12 +351,15 @@ function RNFastListView:setY(value)
         
             local newY = self.y + i * self.options.cellH + self.elements[i].offsetY - self.options.cellH
     
-            if (newY < 0 and maxRow <= self.options.getListSizeFunction()) then
+            if (newY < -self.options.cellH and maxRow <= self.options.getListSizeFunction()) then
                 higherNeeded = true                
                 lowerIndex = i
                 --lowerIndex = minRow
             else
                 if v.object ~= nil then
+                
+                    --print("assigning new y", newY)
+
                     v.object.y = newY
                 end
             end
