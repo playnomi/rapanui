@@ -67,7 +67,7 @@ function RNFastListView:innerNew(o)
 
     o = o or {
         name = "",
-        options = { cellH = 50, cellW = 50, maxScrollingForceY = 30, minY = 0, maxY = 100 },
+        options = { cellH = 50, cellW = 50, maxScrollingForceY = 30, minY = 0, maxY = 100, maxY = 100, touchW = 320, touchH = 480, touchStartX = 0, touchStartY = 0 },
         elements = {},
         x = 0,
         y = 0,
@@ -100,12 +100,35 @@ function RNFastListView:init()
     if self.options.maxScrollingForceY == nil then self.options.maxScrollingForceY = 30 end
     if self.options.minY == nil then self.options.minY = 0 end
     if self.options.maxY == nil then self.options.maxY = 100 end
+    if self.options.touchW == nil then self.options.touchW = 320 end
+    if self.options.touchH == nil then self.options.touchH = 480 end
+    if self.options.touchStartX == nil then self.options.touchStartX = 0 end
+    if self.options.touchStartY == nil then self.options.touchStartY = 0 end
+    if self.options.timestep == nil then self.options.timestep = 1 / 60 end
+
+    --set listeners
+    --self.timerListener = RNMainThread.addTimedAction(.01, self.step)
+    --self.touchListener = RNListeners:addEventListener("touch", self.touchEvent)
+    --self.enterFrameListener = RNListeners:addEventListener("enterFrame", self)
+
+    --organize items
+ --   for i = 1, table.getn(self.elements), 1 do
+ --       self.elements[i].object.x = self.x + self.elements[i].offsetX
+ --       self.elements[i].object.y = self.y + i * self.options.cellH + self.elements[i].offsetY - self.options.cellH
+ --   end
 
 
     --set listeners
-    self.timerListener = RNMainThread.addTimedAction(.01, self.step)
     self.touchListener = RNListeners:addEventListener("touch", self.touchEvent)
-    --self.enterFrameListener = RNListeners:addEventListener("enterFrame", self)
+    self.timerListener = nil
+    self.createTimer()
+
+    self.isToScroll = false
+    self.postogo = 0
+
+    self.registeredFunctions = {}
+
+    self.scrolled = false
 
 end
 
@@ -147,6 +170,9 @@ end
 
 --function RNFastListView:enterFrame()
 function RNFastListView.step()
+
+
+--[[
     if SELF ~= nil and SELF.canScrollY == true then
         
         if SELF.deltay > 0 then 
@@ -219,9 +245,114 @@ function RNFastListView.step()
             end
         end
     end
+ ]]--
+ 
+        if SELF ~= nil then
+        if #SELF.elements > 0 then
+     
+            if SELF.canScrollY == true then
+               
+       --print("step", SELF.deltay, SELF.y)
+                if SELF.deltay > 0 then SELF.deltay = SELF.deltay - 0.2 end
+                if SELF.deltay < 0 then SELF.deltay = SELF.deltay + 0.2 end
+
+                if SELF.deltay > SELF.options.maxScrollingForceY then SELF.deltay = SELF.options.maxScrollingForceY end
+                if SELF.deltay < -SELF.options.maxScrollingForceY then SELF.deltay = -SELF.options.maxScrollingForceY end
+
+                if SELF.deltay > 0 and SELF.deltay <= 0.2 then
+                    SELF.deltay = 0
+                end
+                if SELF.deltay < 0 and SELF.deltay >= -0.2 then
+                    SELF.deltay = 0
+                end
+
+                if SELF.deltay > 0 and SELF.y < SELF.options.maxY + 100 then
+                    SELF.y = SELF.y + SELF.deltay
+                end
+                if SELF.deltay <= 0 and SELF.y > SELF.options.minY - 100 then
+                    SELF.y = SELF.y + SELF.deltay
+                end
+
+                if SELF.deltay > 1 or SELF.deltay < -1 then
+                    SELF.isScrollingY = true
+                end
+
+                if SELF.y > SELF.options.maxY and SELF.isTouching == false then
+                    
+                    if (SELF.y - SELF.options.maxY > SELF.options.cellH/2) then
+
+                        -- trigger the callback here
+                        if SELF.options.callback ~= nil then
+                            SELF.options.callback("reload")
+                            SELF.canScrollY = false
+                        end
+                    end
+                    
+                    
+                    SELF.deltay = 0
+                    local value = (SELF.y - SELF.options.maxY) / 20
+                    SELF.y = SELF.y - value
+                    if value < 0.001 then
+                        SELF.removeTimer()
+                    end
+                end
+                if SELF.y < SELF.options.minY and SELF.isTouching == false then
+                    SELF.deltay = 0
+                    local value = (SELF.options.minY - SELF.y) / 20
+                    SELF.y = SELF.y + value
+                    if value < 0.001 then
+                        SELF.removeTimer()
+                    end
+                end
+
+
+                --scroll due to postogo
+                if SELF.isToScroll == true then
+                    if SELF.y > SELF.postogo then SELF.y = SELF.y - 1 end
+                    if SELF.y <= SELF.postogo then SELF.y = SELF.y + 1 end
+                    if math.abs(SELF.y - SELF.postogo) < 2 then
+                        SELF.y = SELF.postogo
+                        SELF.isToScroll = false
+                        SELF.removeTimer()
+                    end
+                end
+                SELF:callRegisteredFunctions("step")
+            end
+        end
+    end   
+    
+
 end
 
+function RNFastListView.createTimer()
+    if SELF.timerListener == nil then
+        SELF.timerListener = RNMainThread.addTimedAction(SELF.options.timestep, SELF.step)
+    end
+end
+
+function RNFastListView.removeTimer()
+    if SELF.timerListener ~= nil then
+        RNMainThread.removeAction(SELF.timerListener)
+        SELF.timerListener = nil
+    end
+end
+
+function RNFastListView:callRegisteredFunctions(phase)
+    for i = 1, #SELF.registeredFunctions do
+        SELF.registeredFunctions[i](phase)
+    end
+end
+
+function RNFastListView:registerFunction(funct)
+    self.registeredFunctions[#self.registeredFunctions + 1] = funct
+end
+
+
 function RNFastListView.touchEvent(event)
+   
+    --print("touch event")
+
+    --[[ 
     local self = SELF
     if event.phase == "began" and self ~= nil then
         self.tmpY = event.y
@@ -252,6 +383,111 @@ function RNFastListView.touchEvent(event)
         self.isScrollingY = false
         self.isTouching = false
     end
+    ]]--
+    
+        local self = SELF
+    if self.canScrollY == true then
+        if event.x > self.options.touchStartX and event.x < self.options.touchStartX + self.options.touchW and
+                event.y > self.options.touchStartY and event.y < self.options.touchStartY + self.options.touchH then
+            if event.phase == "began" and self ~= nil then
+                self.tmpY = event.y
+                self.isTouching = true
+                SELF:callRegisteredFunctions("beganTouch")
+                SELF.beganDelta = event.y - self.y
+                self.olddeltay = 0
+                SELF.removeTimer()
+            end
+
+--[[]
+            if event.phase == "moved" and self ~= nil then
+
+                self.deltay = event.y - self.tmpY
+
+                if self.canScrollY == true then
+                    self.tmpY = event.y
+                    SELF:callRegisteredFunctions("movedTouch")
+                    self.scrolled = true
+                      
+                    if SELF.options.callback ~= nil then
+                    
+                        topHeight = 100
+                    
+                    else
+                    
+                        topHeight = contentHeight
+                    
+                    end
+                                                          
+                                                                                              
+                    if SELF.deltay > 0 and SELF.y < SELF.options.maxY + topHeight or SELF.deltay <= 0 and SELF.y > SELF.options.minY - contentHeight then
+                        if self.beganDelta ~= nil then
+                            self.y = event.y - self.beganDelta
+                        end
+                    end
+                end
+            end
+]]--
+
+            if event.phase == "moved" and self ~= nil then
+                self.deltay = event.y - self.tmpY
+                if self.canScrollY == true then
+                    self.tmpY = event.y
+                    SELF:callRegisteredFunctions("movedTouch")
+                    self.scrolled = true
+                    if (SELF.deltay > 0 and SELF.y < SELF.options.maxY + 100) then
+                        if self.olddeltay > 0 then
+                            if self.beganDelta ~= nil then
+                                --                                print("               down")
+                                self.y = event.y - self.beganDelta
+                            end
+                        else
+                            --                            print("got new began")
+                            SELF.beganDelta = event.y - self.y
+                        end
+                    end
+                    if (SELF.deltay < 0 and SELF.y > SELF.options.minY - 100) then
+                        if self.olddeltay < 0 then
+                            if self.beganDelta ~= nil then
+                                --                                print("               up")
+                                self.y = event.y - self.beganDelta
+                            end
+                        else
+                            --                            print("got new began")
+                            SELF.beganDelta = event.y - self.y
+                        end
+                    end
+                end
+                self.olddeltay = self.deltay
+            end
+
+
+            if event.phase == "ended" and self ~= nil and self.isScrollingY == false and self.isChooseDone == false then
+                print("ended")
+                for i = 1, table.getn(self.elements), 1 do
+                    if event.x > self.x and event.x < self.x + self.options.cellW and event.y > self.y + i * self.options.cellH - self.options.cellH and event.y < self.y + i * self.options.cellH + self.options.cellH - self.options.cellH then
+                        if self.elements[i].onClick ~= nil and self.scrolled == false then
+                            local funct = self.elements[i].onClick
+                            funct({ target = self.elements[i] })
+                        end
+                    end
+                end
+                self.isTouching = false
+                SELF:callRegisteredFunctions("endedTouch")
+                self.scrolled = false
+                SELF.createTimer()
+            end
+        end
+    end
+    if event.phase == "ended" and self.isScrollingY == true then
+      print("ended")
+        self.isScrollingY = false
+        self.isTouching = false
+        SELF:callRegisteredFunctions("cancelledTouch")
+        self.scrolled = false
+        SELF.createTimer()
+    end
+    
+
 end
 
 
@@ -323,6 +559,9 @@ end
 
 function RNFastListView:setY(value)
     
+    
+    --print("value", value)
+    
     -- need to check the value and see if it is higher than the max
     --local height = MOAIEnvironment.verticalResolution
     local height = contentHeight
@@ -351,14 +590,14 @@ function RNFastListView:setY(value)
         
             local newY = self.y + i * self.options.cellH + self.elements[i].offsetY - self.options.cellH
     
-            if (newY < -self.options.cellH and maxRow <= self.options.getListSizeFunction()) then
+            if (newY < -self.options.cellH*1.5 and maxRow <= self.options.getListSizeFunction()) then
                 higherNeeded = true                
                 lowerIndex = i
                 --lowerIndex = minRow
             else
                 if v.object ~= nil then
                 
-                    --print("assigning new y", newY)
+                   -- print("assigning new y", newY)
 
                     v.object.y = newY
                 end
@@ -462,6 +701,8 @@ function RNFastListView:setY(value)
 end
 
 function RNFastListView:remove()
+
+    --[[
     --RNListeners:removeEventListener("enterFrame", self.enterFrameListener)
     RNMainThread.removeAction(self.timerListener)    
     RNListeners:removeEventListener("touch", self.touchListener)
@@ -475,6 +716,22 @@ function RNFastListView:remove()
 
     self = nil
     SELF = nil
+    
+    ]]--
+    
+    self:removeTimer()
+    RNListeners:removeEventListener("touch", self.touchListener)
+    
+    for i, v in pairs(self.elements) do
+        if v.object ~= nil then
+            v.object:remove()
+        end
+    end
+
+    self = nil
+    SELF = nil    
+    
+
 end
 
 
@@ -509,12 +766,10 @@ function RNFastListView:insertElement(element, number)
 end
 
 function RNFastListView:removeElement(removeRNObject, number)
-   
     if number ~= nil then
         if number > self:getSize() then
             if removeRNObject == true then
                 self.elements[self:getSize()].object:remove()
-                
             end
             self.elements[self:getSize()] = nil
         end
@@ -529,9 +784,7 @@ function RNFastListView:removeElement(removeRNObject, number)
         end
     else
         if removeRNObject == true then
-        
             self.elements[self:getSize()].object:remove()
-
         end
         self.elements[self:getSize()] = nil
     end
@@ -589,10 +842,23 @@ function RNFastListView:setVisibility(value)
     end
 end
 
+function RNFastListView:goToElement(value)
+    self.isToScroll = true
+    self.postogo = -value * self.options.cellH + self.options.touchStartY + self.options.cellH
+    self.createTimer()
+end
+
+function RNFastListView:jumpToElement(value)
+    SELF.y = -value * SELF.options.cellH + SELF.options.touchStartY + SELF.options.cellH
+    SELF.removeTimer()
+end
 
 
---mocks for groupAdd (Yes, RNFastListViews can be added to RNGroups ^^)
+function RNFastListView:getTotalHeight()
+    return self.options.cellH * (#self.elements)
+end
 
+--mocks for groupAdd (Yes, RNListViews can be added to RNGroups ^^)
 
 function RNFastListView:setIDInGroup()
     --mocked for group adding see RNGroup
@@ -602,5 +868,8 @@ function RNFastListView:setLevel()
     --mocked for group adding see RNGroup
 end
 
+function RNFastListView:setParentGroup()
+    --mocked for group adding see RNGroup
+end
 
 return RNFastListView
