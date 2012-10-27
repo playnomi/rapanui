@@ -47,6 +47,31 @@ function RNFactory.init()
     local lwidth, lheight, screenlwidth, screenHeight
     local screenX, screenY
 
+
+
+
+    RNFactory.width = lwidth
+    RNFactory.height = lheight
+
+    contentlwidth = lwidth
+    contentHeight = lheight
+
+    RNFactory.outWidth = RNFactory.width
+    RNFactory.outHeight = RNFactory.height
+
+    RNFactory.screenXOffset = 0
+    RNFactory.screenYOffset = 0
+
+    RNFactory.screenUnitsX = 0
+    RNFactory.screenUnitsY = 0
+
+
+
+
+
+
+
+
     if config.landscape == false then
 
         screenX, screenY = MOAIEnvironment.horizontalResolution, MOAIEnvironment.verticalResolution
@@ -158,9 +183,47 @@ function RNFactory.init()
     --    RNFactory.screen.viewport:setScale(config.graphicsDesign.w, -config.graphicsDesign.h)
     --end
 
+    RNFactory.calculateTouchValues()
+
 
     RNInputManager.setGlobalRNScreen(screen)
 end
+
+
+function RNFactory.calculateTouchValues()
+
+
+    local ofx = RNFactory.screenXOffset
+    local ofy = RNFactory.screenYOffset
+
+    local gx = RNFactory.screenUnitsX
+    local gy = RNFactory.screenUnitsY
+    local tx = RNFactory.width
+    local ty = RNFactory.height
+
+    --screen aspect without calculating offsets
+    local Ax = gx / (tx - ofx * 2)
+    local Ay = gy / (ty - ofy * 2)
+
+    local statusBar = 0
+
+    if config.iosStatusBar then
+        if MOAIEnvironment.iosRetinaDisplay then
+            statusBar = 40
+        else
+            statusBar = 20
+        end
+    end
+
+    RNFactory.statusBarHeight = statusBar
+    RNFactory.ofx = ofx
+    RNFactory.ofy = ofy
+    RNFactory.Ax = Ax
+    RNFactory.Ay = Ay
+end
+
+
+
 
 -- extra method call to setup the underlying system
 RNFactory.init()
@@ -244,36 +307,7 @@ function RNFactory.createImage(image, params)
     local o = RNObject:new()
     
     local imageFilenameToLoad = image
-    
-if (MOAIEnvironment.osBrand == "iOS") then
-
-    -- HD asserts
-    --if (MOAIEnvironment.iosRetinaDisplay) then
-        
-        -- we need to add -hd to the filename 
-        imageFilenameToLoad, replacements = string.gsub(image, ".png", "-hd.png")
-            
-   -- else
-        -- just use the filename given
-    
-   -- end
-
-else
-
-    -- HD asserts
-    --if (MOAIEnvironment.screenWidth > 2000) then
-
-        -- we need to add -hd to the filename 
-        imageFilenameToLoad, replacements = string.gsub(image, ".png", "-hd.png")
-        
-    --else
-        -- just use the filename given
-
-    --end
-
-
-end
-   
+       
     --print ("image to load", imageFilenameToLoad) 
     
     local o, deck = o:initWithImage2(imageFilenameToLoad)

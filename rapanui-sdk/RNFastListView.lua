@@ -171,82 +171,6 @@ end
 --function RNFastListView:enterFrame()
 function RNFastListView.step()
 
-
---[[
-    if SELF ~= nil and SELF.canScrollY == true then
-        
-        if SELF.deltay > 0 then 
-            SELF.deltay = SELF.deltay - 0.2 
-        end
-        
-        if SELF.deltay < 0 then 
-            SELF.deltay = SELF.deltay + 0.2 
-        end
-
-        if SELF.deltay > SELF.options.maxScrollingForceY then SELF.deltay = SELF.options.maxScrollingForceY end
-        if SELF.deltay < -SELF.options.maxScrollingForceY then SELF.deltay = -SELF.options.maxScrollingForceY end
-
-        if SELF.deltay > 0 and SELF.deltay <= 0.2 
-            then SELF.deltay = 0 
-        end
-
-        if SELF.deltay < 0 and SELF.deltay >= -0.2 
-            then SELF.deltay = 0 
-        end
-
-        if SELF.deltay > 0 and SELF.y < SELF.options.maxY + 100 then
-           --print("set y less than max", SELF.deltay)
-            SELF.y = SELF.y + SELF.deltay
-         
-        if (SELF.isTouching == true) then
-            --SELF.deltay = 0
-        end
-
-        elseif SELF.deltay <= 0 and SELF.y > SELF.options.minY - 100 then            
-            
-            if (SELF.deltay ~= 0) then
-                SELF.y = SELF.y + SELF.deltay
-            
-                if (SELF.isTouching == true) then
-                    --SELF.deltay = 0
-                end
-
-            end
-        end
-
-        if SELF.deltay > 1 or SELF.deltay < -1 then
-            SELF.isScrollingY = true
-             --print("enterFrame deltay", SELF.deltay)
-        end
-
-        if SELF.y > SELF.options.maxY and SELF.isTouching == false then
-            
-            if (SELF.y - SELF.options.maxY > SELF.options.cellH/2) then
-
-                -- trigger the callback here
-                if SELF.options.callback ~= nil then
-                    SELF.options.callback("reload")
-                end
-            end
-
-            SELF.deltay = 0
-
-            --print("EnterFame: changing y ", SELF.deltay)
-            SELF.y = SELF.y - (SELF.options.maxY + SELF.y) / 20
-        end
-        if SELF.y < SELF.options.minY and SELF.isTouching == false then
-            --print("EnterFame: changing y plac 2 ", SELF.options.minY, "self.y", SELF.y)
-            SELF.deltay = 0
-            
-            if (SELF.options.minY - SELF.y) < 1 and (SELF.options.minY - SELF.y) > -1 then 
-                SELF.y = SELF.options.minY
-            else
-                SELF.y = SELF.y + (SELF.options.minY - SELF.y) / 20
-            end
-        end
-    end
- ]]--
- 
         if SELF ~= nil then
         if #SELF.elements > 0 then
      
@@ -294,6 +218,7 @@ function RNFastListView.step()
                     SELF.y = SELF.y - value
                     if value < 0.001 then
                         SELF.removeTimer()
+                        self.needScroll = false
                     end
                 end
                 if SELF.y < SELF.options.minY and SELF.isTouching == false then
@@ -302,6 +227,7 @@ function RNFastListView.step()
                     SELF.y = SELF.y + value
                     if value < 0.001 then
                         SELF.removeTimer()
+                        self.needScroll = false
                     end
                 end
 
@@ -351,39 +277,6 @@ end
 function RNFastListView.touchEvent(event)
    
     --print("touch event")
-
-    --[[ 
-    local self = SELF
-    if event.phase == "began" and self ~= nil then
-        self.tmpY = event.y
-        self.isTouching = true
-    end
-
-
-    if event.phase == "moved" and self ~= nil then
-        self.deltay = event.y - self.tmpY
-        if self.canScrollY == true then
-            self.tmpY = event.y            
-        end
-    end
-
-    if event.phase == "ended" and self ~= nil and self.isScrollingY == false and self.isChooseDone == false then
-        for i = 1, table.getn(self.elements), 1 do
-            if event.x > self.x and event.x < self.x + self.options.cellW and event.y > self.y + i * self.options.cellH - self.options.cellH and event.y < self.y + i * self.options.cellH + self.options.cellH - self.options.cellH then
-                if self.elements[i].onClick ~= nil then
-                    local funct = self.elements[i].onClick
-                    funct({ target = self.elements[i] })
-                end
-            end
-        end
-        self.isTouching = false
-    end
-
-    if event.phase == "ended" and self.isScrollingY == true then
-        self.isScrollingY = false
-        self.isTouching = false
-    end
-    ]]--
     
         local self = SELF
     if self.canScrollY == true then
@@ -397,36 +290,6 @@ function RNFastListView.touchEvent(event)
                 self.olddeltay = 0
                 SELF.removeTimer()
             end
-
---[[]
-            if event.phase == "moved" and self ~= nil then
-
-                self.deltay = event.y - self.tmpY
-
-                if self.canScrollY == true then
-                    self.tmpY = event.y
-                    SELF:callRegisteredFunctions("movedTouch")
-                    self.scrolled = true
-                      
-                    if SELF.options.callback ~= nil then
-                    
-                        topHeight = 100
-                    
-                    else
-                    
-                        topHeight = contentHeight
-                    
-                    end
-                                                          
-                                                                                              
-                    if SELF.deltay > 0 and SELF.y < SELF.options.maxY + topHeight or SELF.deltay <= 0 and SELF.y > SELF.options.minY - contentHeight then
-                        if self.beganDelta ~= nil then
-                            self.y = event.y - self.beganDelta
-                        end
-                    end
-                end
-            end
-]]--
 
             if event.phase == "moved" and self ~= nil then
                 self.deltay = event.y - self.tmpY
@@ -525,8 +388,6 @@ function RNFastListView:jumpToLetter(letter)
 
     print ("elementSize", elementSize)
 
-    --local height = MOAIEnvironment.verticalResolution
-
     local height = contentHeight
 
     print("current y", self.y, SELF.y)
@@ -545,9 +406,7 @@ function RNFastListView:jumpToLetter(letter)
         self.elements[i] = self.cellForRowAtIndexPath(i)
     end
 
-    --organize items
-    --for i = 1, table.getn(self.elements), 1 do
-    
+    --organize items  
     for i = minRow, maxRow do
         self.elements[i].object.x = self.x + self.elements[i].offsetX
         self.elements[i].object.y = self.y + i * self.options.cellH + self.elements[i].offsetY - self.options.cellH
@@ -559,7 +418,6 @@ end
 
 function RNFastListView:setY(value)
     
-    
     --print("value", value)
     
     -- need to check the value and see if it is higher than the max
@@ -569,7 +427,7 @@ function RNFastListView:setY(value)
     minRow = -(math.floor(self.y / self.options.cellH)) + 1
     maxRow = -(math.floor((self.y - height) / self.options.cellH)) + 1
 
-    minRow = minRow - 1
+    minRow = minRow - 2
     --maxRow = maxRow + 1
 
     if (minRow < 1) then

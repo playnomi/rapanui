@@ -82,6 +82,8 @@ function RNScreen:addRNObject(object, mode)
     object:setIDInScreen(self.numSprites)
 
     object:getProp().rnObjectId = self.numSprites
+    
+    object:getProp().RNObject = object
 end
 
 function RNScreen:removeRNObject(object)
@@ -133,13 +135,22 @@ function RNScreen:getObjectWithHighestLevelOn(x, y)
         props = { self.mainPartition:propListForPoint(x, y, 0, MOAILayer.SORT_PRIORITY_DESCENDING) }
     end
 
-    for i, p in ipairs(props) do
-        for j, k in ipairs(self.sprites) do
-            if k.prop == p then
-                if k.touchable == true then
-                    return k
-                end
-            end
+    --Old, deprecated worst way to do this.
+    --    for i, p in ipairs(props) do
+    --        for j, k in ipairs(self.sprites) do
+    --            if k.prop == p then
+    --                if k.touchable == true then
+    --                    --                    print(k.name)
+    --                    return k
+    --                end
+    --            end
+    --        end
+    --    end
+
+    for i = 1, #props do
+        local currentProp = props[i]
+        if currentProp.RNObject.touchable == true then
+            return currentProp.RNObject
         end
     end
 end
