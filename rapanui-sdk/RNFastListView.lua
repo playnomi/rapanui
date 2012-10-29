@@ -134,13 +134,15 @@ end
 
 function RNFastListView:drawCells()
 
+    print("draw cells")
+
     local elementSize = self.getListSize()
 
     print ("elementSize", elementSize)
 
    -- local height = MOAIEnvironment.verticalResolution
 
-        local height = contentHeight
+        local height = contentHeight + 200
 
         minRow = -(math.floor(SELF.y / SELF.options.cellH)) + 1
         maxRow = -(math.floor((SELF.y-height) / SELF.options.cellH)) + 1
@@ -171,12 +173,13 @@ end
 --function RNFastListView:enterFrame()
 function RNFastListView.step()
 
+      --  print("step")
+
         if SELF ~= nil then
         if #SELF.elements > 0 then
      
             if SELF.canScrollY == true then
                
-       --print("step", SELF.deltay, SELF.y)
                 if SELF.deltay > 0 then SELF.deltay = SELF.deltay - 0.2 end
                 if SELF.deltay < 0 then SELF.deltay = SELF.deltay + 0.2 end
 
@@ -193,7 +196,10 @@ function RNFastListView.step()
                 if SELF.deltay > 0 and SELF.y < SELF.options.maxY + 100 then
                     SELF.y = SELF.y + SELF.deltay
                 end
-                if SELF.deltay <= 0 and SELF.y > SELF.options.minY - 100 then
+                
+                -- don't do anything if deltay is = 0
+                --if SELF.deltay <= 0 and SELF.y > SELF.options.minY - 100 then
+                if SELF.deltay < 0 and SELF.y > SELF.options.minY - 100 then
                     SELF.y = SELF.y + SELF.deltay
                 end
 
@@ -215,10 +221,13 @@ function RNFastListView.step()
                     
                     SELF.deltay = 0
                     local value = (SELF.y - SELF.options.maxY) / 20
+                    
+                    print("SELF.y > SELF.options.maxY")
+
                     SELF.y = SELF.y - value
                     if value < 0.001 then
                         SELF.removeTimer()
-                        self.needScroll = false
+                        SELF.needScroll = false
                     end
                 end
                 if SELF.y < SELF.options.minY and SELF.isTouching == false then
@@ -227,10 +236,9 @@ function RNFastListView.step()
                     SELF.y = SELF.y + value
                     if value < 0.001 then
                         SELF.removeTimer()
-                        self.needScroll = false
+                        SELF.needScroll = false
                     end
                 end
-
 
                 --scroll due to postogo
                 if SELF.isToScroll == true then
@@ -278,7 +286,7 @@ function RNFastListView.touchEvent(event)
    
     --print("touch event")
     
-        local self = SELF
+    local self = SELF
     if self.canScrollY == true then
         if event.x > self.options.touchStartX and event.x < self.options.touchStartX + self.options.touchW and
                 event.y > self.options.touchStartY and event.y < self.options.touchStartY + self.options.touchH then
@@ -365,6 +373,8 @@ end
 
 function RNFastListView:jumpToLetter(letter)
 
+    print("jump to letter", letter)
+
     for i, v in pairs(self.elements) do
         self.elements[i].object:remove()
         self.elements[i] = nil
@@ -373,7 +383,6 @@ function RNFastListView:jumpToLetter(letter)
     print("all elements removed")
     
     -- get the letter index
-
     print("letter", letter)
     print("min value", self.options.minY)
 
@@ -382,35 +391,10 @@ function RNFastListView:jumpToLetter(letter)
     print ("jump to index", self.letterIndexes[letter])
     print ("jump to y", - index * self.options.cellH)
 
+    self.deltay = 0
     self.y = - index * self.options.cellH
 
-    local elementSize = self.getListSize()
-
-    print ("elementSize", elementSize)
-
-    local height = contentHeight
-
-    print("current y", self.y, SELF.y)
-
-    minRow = -(math.floor(SELF.y / SELF.options.cellH)) + 1
-    maxRow = -(math.floor((SELF.y-height) / SELF.options.cellH)) + 1
-
-    if maxRow > elementSize then
-        maxRow = elementSize
-        minRow = math.floor(maxRow - height/SELF.options.cellH)
-    end
-
-    print ("min row", minRow, "max row", maxRow)
-
-    for i = minRow, maxRow do
-        self.elements[i] = self.cellForRowAtIndexPath(i)
-    end
-
-    --organize items  
-    for i = minRow, maxRow do
-        self.elements[i].object.x = self.x + self.elements[i].offsetX
-        self.elements[i].object.y = self.y + i * self.options.cellH + self.elements[i].offsetY - self.options.cellH
-    end
+    self:drawCells()
 
 end
 
@@ -418,143 +402,152 @@ end
 
 function RNFastListView:setY(value)
     
-    --print("value", value)
+    if self.deltay > self.options.cellH then
     
-    -- need to check the value and see if it is higher than the max
-    --local height = MOAIEnvironment.verticalResolution
-    local height = contentHeight
-
-    minRow = -(math.floor(self.y / self.options.cellH)) + 1
-    maxRow = -(math.floor((self.y - height) / self.options.cellH)) + 1
-
-    minRow = minRow - 2
-    --maxRow = maxRow + 1
-
-    if (minRow < 1) then
-        minRow = 1
-    end
-
-    if (maxRow > self.options.getListSizeFunction()) then
-
-        maxRow = self.options.getListSizeFunction()
-
-    end
-
-    if (self.deltay < 0 ) then
-    
-        higherNeeded = false
-    
-        for i, v in pairs(self.elements) do
+        print("big jump", self.deltay)
         
-            local newY = self.y + i * self.options.cellH + self.elements[i].offsetY - self.options.cellH
+    end
     
-            if (newY < -self.options.cellH*1.5 and maxRow <= self.options.getListSizeFunction()) then
-                higherNeeded = true                
-                lowerIndex = i
-                --lowerIndex = minRow
-            else
-                if v.object ~= nil then
-                
-                   -- print("assigning new y", newY)
+        local indexRemoved = 0
 
-                    v.object.y = newY
+        -- need to check the value and see if it is higher than the max
+        local height = contentHeight
+
+        minRow = -(math.floor(self.y/ self.options.cellH))
+        maxRow = -(math.floor((self.y - height) / self.options.cellH))
+
+        if (minRow < 1) then
+            minRow = 1
+        end
+
+        if (maxRow > self.options.getListSizeFunction()) then
+            maxRow = self.options.getListSizeFunction()
+        end
+
+        if (self.deltay < 0 ) then
+        
+            local higherNeeded = false
+        
+            for i, v in pairs(self.elements) do
+            
+                local newY = self.y + i * self.options.cellH + self.elements[i].offsetY - self.options.cellH
+        
+                if (newY < -self.options.cellH*1.5 and maxRow <= self.options.getListSizeFunction()) then
+                    higherNeeded = true                
+                    lowerIndex = i
+                else
+                    if v.object ~= nil then
+                        v.object.y = newY
+                    end
                 end
             end
             
-        end
-        
-            if (higherNeeded == true) then
-        
-                nextRow = maxRow+1
+                if (higherNeeded == true) then
+            
+                    nextRow = maxRow+1
+                    if (self.elements[nextRow] == nil) then
 
-                if (self.elements[nextRow] == nil) then
+                        self.elements[nextRow] = self.cellForRowAtIndexPath(nextRow)
+                        
+                        if (self.elements[nextRow] ~= nil and self.elements[lowerIndex] ~= nil) then
 
-                    self.elements[nextRow] = self.cellForRowAtIndexPath(nextRow)
-
-                    if (self.elements[nextRow] ~= nil and self.elements[lowerIndex] ~= nil) then
-
-                        print("higher needed remove: ", lowerIndex)
-                        print("higher needed add: ", nextRow)
-                
-                        self.elements[lowerIndex].object:remove()
-                        self.elements[lowerIndex] = nil
-
-                        self.elements[nextRow].object.y = self.y + (nextRow) * self.options.cellH + self.elements[nextRow].offsetY - self.options.cellH
+                            print("higher needed remove lower: ", lowerIndex)
+                            print("higher needed add: ", nextRow)
                     
+                            -- remove all lower than lower index
+                            
+                            for i, element in pairs(self.elements) do
+                            
+                                if ( i <= lowerIndex ) then
+                                
+                                    print("Remove index", i)
+
+                                    self.elements[i].object:remove()
+                                    self.elements[i] = nil
+                                end
+                            end
+                    
+                            indexRemoved = lowerIndex
+                        end
+                        
+                        self.elements[nextRow].object.y = self.y + (nextRow) * self.options.cellH + self.elements[nextRow].offsetY - self.options.cellH
+
+                    end
+                end
+
+                -- base case should have no nil cells
+                for i=minRow, maxRow do
+
+                    if self.elements[i] == nil and i ~= indexRemoved then
+                        print ("fill in higher cell at ", i, indexRemoved)
+                        self.elements[i] = self.cellForRowAtIndexPath(i)
+
+                        -- now we must give this a y value
+                        self.elements[i].object.y = self.y + (i) * self.options.cellH + self.elements[i].offsetY - self.options.cellH
+                        
                     end
 
                 end
+                
+        elseif (self.deltay > 0) then
+        
+            local lowerNeeded = false
+            for i, v in pairs(self.elements) do
 
+                local newY = self.y + i * self.options.cellH + self.elements[i].offsetY - self.options.cellH
+                if (newY > (height + self.options.cellH) and minRow > 1) then
+                    lowerNeeded = true
+                    higherIndex = i
+                else
+                    if v.object ~= nil then
+                        v.object.y = newY
+                    end
+                end
+            end
+        
+            if (lowerNeeded == true) then
+                nextRow = minRow - 1
+                if (self.elements[nextRow] == nil) then
+                    
+                    self.elements[nextRow] = self.cellForRowAtIndexPath(nextRow)
+                    
+                    if (self.elements[nextRow] == nil) and (self.elements[maxRow+1] ~= nil) then
+
+                        print("lower needed remove higher: ", higherIndex)
+                        print("lower needed add: ", nextRow)
+
+                       -- self.elements[maxRow+1].object:remove()
+                       -- self.elements[maxRow+1] = nil
+                        for i, element in ipairs(self.elements) do
+                            if ( i >= maxRow+1 ) then
+                            
+                                 print("Remove index", i)
+                                self.elements[i].object:remove()
+                                self.elements[i] = nil
+                            end
+                        end
+                    
+                        indexRemoved = maxRow+1
+                    end
+                    
+                    self.elements[nextRow].object.y = self.y + (nextRow) * self.options.cellH + self.elements[nextRow].offsetY - self.options.cellH
+                end
             end
 
             -- base case should have no nil cells
             for i=minRow, maxRow do
-
-                if self.elements[i] == nil then
-
-                    self.elements[i] = self.cellForRowAtIndexPath(i)
-
-                end
-
-            end
-
-    elseif (self.deltay > 0) then
-    
-        lowerNeeded = false
-
-        for i, v in pairs(self.elements) do
-
-           local newY = self.y + i * self.options.cellH + self.elements[i].offsetY - self.options.cellH
-    
-            if (newY > (height + self.options.cellH) and minRow > 1) then
-                lowerNeeded = true
-                higherIndex = i
-            else
-                if v.object ~= nil then
-                    v.object.y = newY
-                end
-            end
-        
-        end
-    
-        if (lowerNeeded == true) then
-            
-            nextRow = minRow - 1
-
-            if (self.elements[nextRow] == nil) then
-
-                self.elements[nextRow] = self.cellForRowAtIndexPath(nextRow)
-
-                if (self.elements[minRow-1] == nil) and (self.elements[maxRow+1] ~= nil) then
-
-                    print("lower needed remove: ", higherIndex)
-                    print("lower needed add: ", nextRow)
-
-                    self.elements[maxRow+1].object:remove()
-                    self.elements[maxRow+1] = nil
-
-                    self.elements[nextRow].object.y = self.y + (nextRow) * self.options.cellH + self.elements[nextRow].offsetY - self.options.cellH
+                if self.elements[i] == nil and i ~= indexRemoved then
+                    print ("fill in lower cell at ", i, indexRemoved)
+                    self.elements[i] = self.cellForRowAtIndexPath(i)  
                     
+                    self.elements[i].object.y = self.y + (i) * self.options.cellH + self.elements[i].offsetY - self.options.cellH                
+
                 end
             end
-        end
-
-        -- base case should have no nil cells
-
-        for i=minRow, maxRow do
-
-            if self.elements[i] == nil then
-
-                self.elements[i] = self.cellForRowAtIndexPath(i)
-
-            end
-
-        end
-
-        
             
-    end
-        
+
+        end
+
     self.options.y = value
 end
 
