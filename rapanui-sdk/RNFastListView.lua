@@ -67,7 +67,7 @@ function RNFastListView:innerNew(o)
 
     o = o or {
         name = "",
-        options = { cellH = 50, cellW = 50, maxScrollingForceY = 30, minY = 0, maxY = 100, maxY = 100, touchW = 320, touchH = 480, touchStartX = 0, touchStartY = 0 },
+        options = { timestep = 1 / 30, cellH = 50, cellW = 50, maxScrollingForceY = 30, minY = 0, maxY = 100, maxY = 100, touchW = 320, touchH = 480, touchStartX = 0, touchStartY = 0 },
         elements = {},
         x = 0,
         y = 0,
@@ -85,7 +85,6 @@ function RNFastListView:innerNew(o)
         --
         isChooseDone = false,
         cells = {},
-        currentVisibleCells = {}
     }
     setmetatable(o, self)
     self.__index = self
@@ -133,54 +132,53 @@ function RNFastListView:drawCells()
     local elementSize = self.getListSize()
 
     print ("elementSize", elementSize)
+    local height = contentHeight
 
-   -- local height = MOAIEnvironment.verticalResolution
+    minRow = -(math.floor(SELF.y / SELF.options.cellH)) + 1
+    maxRow = -(math.floor((SELF.y-height) / SELF.options.cellH)) + 1
 
-        local height = contentHeight
+    if (minRow < 1) then
+        minRow = 1
+    end
 
-        minRow = -(math.floor(SELF.y / SELF.options.cellH)) + 1
-        maxRow = -(math.floor((SELF.y-height) / SELF.options.cellH)) + 1
+    print ("min row", minRow, "max row", maxRow)
 
-        if (minRow < 1) then
-            minRow = 1
-        end
+    for i = minRow, maxRow do
+        self.elements[i] = self.cellForRowAtIndexPath(i)
+    end
 
-        print ("min row", minRow, "max row", maxRow)
-
-        for i = minRow, maxRow do
-
-            self.elements[i] = self.cellForRowAtIndexPath(i)
-
-        end
-
-        --organize items
-        --for i = 1, table.getn(self.elements), 1 do
-        
-        for i = minRow, maxRow do    
-            self.elements[i].object.x = self.x + self.elements[i].offsetX
-            self.elements[i].object.y = self.y + i * self.options.cellH + self.elements[i].offsetY - self.options.cellH
-        end
+    --organize items
+    --for i = 1, table.getn(self.elements), 1 do
+    
+    for i = minRow, maxRow do    
+        self.elements[i].object.x = self.x + self.elements[i].offsetX
+        self.elements[i].object.y = self.y + i * self.options.cellH + self.elements[i].offsetY - self.options.cellH
+    end
 
 
 end
 
 function RNFastListView.step()
 
+      --  print("step", #SELF.elements)
+
         if SELF ~= nil then
-        if #SELF.elements > 0 then
-     
+       -- if #SELF.elements > 0 then
+                         
+           -- print("SELF.deltay", SELF.deltay)
+
             if SELF.canScrollY == true then
-               
+
                 if SELF.deltay > 0 then SELF.deltay = SELF.deltay - 0.2 end
                 if SELF.deltay < 0 then SELF.deltay = SELF.deltay + 0.2 end
 
                 if SELF.deltay > SELF.options.maxScrollingForceY then SELF.deltay = SELF.options.maxScrollingForceY end
                 if SELF.deltay < -SELF.options.maxScrollingForceY then SELF.deltay = -SELF.options.maxScrollingForceY end
 
-                if SELF.deltay > 0 and SELF.deltay <= 0.1 then
+                if SELF.deltay > 0 and SELF.deltay <= 0.2 then
                     SELF.deltay = 0
                 end
-                if SELF.deltay < 0 and SELF.deltay >= -0.1 then
+                if SELF.deltay < 0 and SELF.deltay >= -0.2 then
                     SELF.deltay = 0
                 end
 
@@ -190,11 +188,13 @@ function RNFastListView.step()
                 
                 -- don't do anything if deltay is = 0
                 --if SELF.deltay <= 0 and SELF.y > SELF.options.minY - 100 then
-                if SELF.deltay <= 0 and SELF.y > SELF.options.minY - 100 then
+                if SELF.deltay < 0 and SELF.y > SELF.options.minY - 100 then
                     SELF.y = SELF.y + SELF.deltay
                 end
 
                 if SELF.deltay > 1 or SELF.deltay < -1 then
+                
+                    print("is scrolling = true, deltay",SELF.deltay )
                     SELF.isScrollingY = true
                 end
 
@@ -205,6 +205,7 @@ function RNFastListView.step()
                     
                     SELF.y = SELF.y - value
                     if value < 0.001 then
+                        print("value < .001 remove timer")
                         SELF.removeTimer()
                     end
                 end
@@ -213,6 +214,7 @@ function RNFastListView.step()
                     local value = (SELF.options.minY - SELF.y) / 20
                     SELF.y = SELF.y + value
                     if value < 0.001 then
+                        print("value < .001 remove timer")                    
                         SELF.removeTimer()
                     end
                 end
@@ -229,7 +231,7 @@ function RNFastListView.step()
                 end
                 SELF:callRegisteredFunctions("step")
             end
-        end
+      --  end
     end   
     
 
@@ -276,6 +278,35 @@ function RNFastListView.touchEvent(event)
                 SELF.removeTimer()
             end
 
+
+            if event.phase == "moved" and self ~= nil then
+            
+                self.deltay = event.y - self.tmpY
+                if self.canScrollY == true then
+                    self.tmpY = event.y
+                    SELF:callRegisteredFunctions("movedTouch")
+                    self.scrolled = true
+                      
+                    if SELF.options.callback ~= nil then
+                    
+                        topHeight = 100
+                    
+                    else
+                    
+                        topHeight = contentHeight
+                    
+                    end
+                                                          
+                                                                                              
+                    if SELF.deltay > 0 and SELF.y < SELF.options.maxY + topHeight or SELF.deltay <= 0 and SELF.y > SELF.options.minY - contentHeight then
+                        if self.beganDelta ~= nil then
+                            self.y = event.y - self.beganDelta
+                        end
+                    end
+                end
+            end
+
+--[[
             if event.phase == "moved" and self ~= nil then
                 self.deltay = event.y - self.tmpY
                 if self.canScrollY == true then
@@ -307,7 +338,7 @@ function RNFastListView.touchEvent(event)
                 end
                 self.olddeltay = self.deltay
             end
-
+]]--
 
             if event.phase == "ended" and self ~= nil and self.isScrollingY == false and self.isChooseDone == false then
                 print("ended not scrolling")
@@ -379,11 +410,13 @@ end
 
 function RNFastListView:setY(value)
     
-    if self.deltay > self.options.cellH then
+   -- if self.deltay > self.options.cellH then
     
-        print("big jump", self.deltay)
+   --     print("big jump", self.deltay)
         
-    end
+   -- end
+   
+   -- print("sety", value)
     
         local indexRemoved = 0
 
@@ -432,17 +465,19 @@ function RNFastListView:setY(value)
                             print("higher needed add: ", nextRow)
                     
                             -- remove all lower than lower index
+                                    self.elements[lowerIndex].object:remove()
+                                    self.elements[lowerIndex] = nil
+
+                          --  for i, element in pairs(self.elements) do
                             
-                            for i, element in pairs(self.elements) do
-                            
-                                if ( i <= lowerIndex ) then
+                          --      if ( i <= lowerIndex ) then
                                 
                                     --print("Remove index", i)
 
-                                    self.elements[i].object:remove()
-                                    self.elements[i] = nil
-                                end
-                            end
+                          --          self.elements[i].object:remove()
+                          --          self.elements[i] = nil
+                          --      end
+                          --  end
                     
                             indexRemoved = lowerIndex
                         end
@@ -493,16 +528,16 @@ function RNFastListView:setY(value)
                         print("lower needed remove higher: ", higherIndex)
                         print("lower needed add: ", nextRow)
 
-                       -- self.elements[maxRow+1].object:remove()
-                       -- self.elements[maxRow+1] = nil
-                        for i, element in ipairs(self.elements) do
-                            if ( i >= maxRow+1 ) then
+                        self.elements[maxRow+1].object:remove()
+                        self.elements[maxRow+1] = nil
+                       -- for i, element in ipairs(self.elements) do
+                       --     if ( i >= maxRow+1 ) then
                             
                                 --print("Remove index", i)
-                                self.elements[i].object:remove()
-                                self.elements[i] = nil
-                            end
-                        end
+                       --         self.elements[i].object:remove()
+                       --         self.elements[i] = nil
+                       --     end
+                       -- end
                     
                         indexRemoved = maxRow+1
                     end
@@ -533,7 +568,6 @@ function RNFastListView:setY(value)
 
     end
         
-
     self.options.y = value
 end
 

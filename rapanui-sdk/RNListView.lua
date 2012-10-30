@@ -162,6 +162,7 @@ function RNListView.step()
                         end
                     end
                     
+                    
                     SELF.deltay = 0
                     local value = (SELF.y - SELF.options.maxY) / 20
                     SELF.y = SELF.y - value
@@ -177,6 +178,7 @@ function RNListView.step()
                         SELF.removeTimer()
                     end
                 end
+
 
                 --scroll due to postogo
                 if SELF.isToScroll == true then
@@ -313,11 +315,11 @@ function RNListView.touchEvent(event)
     end
     if event.phase == "ended" and self.isScrollingY == true then
       print("ended")
-            self:createTimer()
-            self.isScrollingY = false
-            self.isTouching = false
-            self:callRegisteredFunctions("cancelledTouch")
-            self.scrolled = false
+        self.isScrollingY = false
+        self.isTouching = false
+        SELF:callRegisteredFunctions("cancelledTouch")
+        self.scrolled = false
+        SELF.createTimer()
     end
 end
 
