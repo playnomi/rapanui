@@ -500,9 +500,18 @@ function RNObject:initWithMoaiImage(moaiImage)
     self.gfxQuad:setUVRect(0, 0, u, v)
 
 
+
+
+
     self.prop:setDeck(self.gfxQuad)
     self.gfxQuad:setRect(-self.originalWidth / 2, -self.originalHeight / 2, (self.originalWidth) / 2, (self.originalHeight) / 2)
     self.prop:setPriority(1)
+    
+    local scaleX, scaleY = self.prop:getScl()
+    self.scaleX = scaleX
+    self.scaleY = scaleY
+
+
 end
 
 
@@ -1211,7 +1220,7 @@ function RNObject:onEvent(event)
 
     if event.phase == "began" and self.visible and self.onTouchDownListener ~= nil then
             if self.onTouchDownParam then
-                print("button on touch down")
+                --print("button on touch down")
                 self.onTouchDownListener(event, self.onTouchDownParam)
             else
                 self.onTouchDownListener(event)

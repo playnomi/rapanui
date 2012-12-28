@@ -134,8 +134,8 @@ end      --]]
 -- RapaNui sample games:
 
 --require("rapanui-samples/games/brick2d/brick2d")
-require("rapanui-samples/games/SunGolf/SunGolf")
---require("rapanui-samples/games/AngryDogsAgainstMoais/AngryDogsAgainstMoais")
+--require("rapanui-samples/games/SunGolf/SunGolf")
+require("rapanui-samples/games/AngryDogsAgainstMoais/AngryDogsAgainstMoais")
 
 -- Maps
 

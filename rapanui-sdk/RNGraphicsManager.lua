@@ -215,9 +215,8 @@ function RNGraphicsManager:allocateFont(path, charcodes, size, value)
     retinaSize  = size*2
     bmPath      = path .. "-" .. tostring(retinaSize) .. ".fnt"
 
-    print("load font", path)
     print("font path", bmPath)
-    print("font size", size, "x2", retinaSize)
+    --print("font size", size, "x2", retinaSize)
 
     object.font:loadFromBMFont(bmPath)
     object.font:preloadGlyphs ( charcodes, retinaSize )

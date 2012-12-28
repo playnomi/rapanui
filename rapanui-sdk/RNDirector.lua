@@ -14,7 +14,7 @@
 
 --global vars
 --global time for transitions
-local TIME = 200
+local TIME = 100
 --other globals
 local CURRENT_SCENE
 local NEXT_SCENE

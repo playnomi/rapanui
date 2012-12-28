@@ -114,6 +114,7 @@ function RNListView:init()
 
     self.isToScroll = false
     self.postogo = 0
+    self.olddeltay = 0
 
     self.registeredFunctions = {}
 
@@ -127,16 +128,16 @@ function RNListView.step()
      
             if SELF.canScrollY == true then
                
-                if SELF.deltay > 0 then SELF.deltay = SELF.deltay - 0.2 end
-                if SELF.deltay < 0 then SELF.deltay = SELF.deltay + 0.2 end
+                if SELF.deltay > 0 then SELF.deltay = SELF.deltay - 1 end
+                if SELF.deltay < 0 then SELF.deltay = SELF.deltay + 1 end
 
                 if SELF.deltay > SELF.options.maxScrollingForceY then SELF.deltay = SELF.options.maxScrollingForceY end
                 if SELF.deltay < -SELF.options.maxScrollingForceY then SELF.deltay = -SELF.options.maxScrollingForceY end
 
-                if SELF.deltay > 0 and SELF.deltay <= 0.2 then
+                if SELF.deltay > 0 and SELF.deltay <= 1 then
                     SELF.deltay = 0
                 end
-                if SELF.deltay < 0 and SELF.deltay >= -0.2 then
+                if SELF.deltay < 0 and SELF.deltay >= -1 then
                     SELF.deltay = 0
                 end
 

@@ -136,23 +136,23 @@ function RNScreen:getObjectWithHighestLevelOn(x, y)
     end
 
     --Old, deprecated worst way to do this.
-    --    for i, p in ipairs(props) do
-    --        for j, k in ipairs(self.sprites) do
-    --            if k.prop == p then
-    --                if k.touchable == true then
-    --                    --                    print(k.name)
-    --                    return k
-    --                end
-    --            end
-    --        end
-    --    end
-
-    for i = 1, #props do
-        local currentProp = props[i]
-        if currentProp.RNObject.touchable == true then
-            return currentProp.RNObject
+        for i, p in ipairs(props) do
+            for j, k in ipairs(self.sprites) do
+                if k.prop == p then
+                    if k.touchable == true then
+                        --                    print(k.name)
+                        return k
+                    end
+                end
+            end
         end
-    end
+
+   -- for i = 1, #props do
+   --     local currentProp = props[i]
+    --    if currentProp.RNObject.touchable == true then
+    --        return currentProp.RNObject
+    --    end
+   -- end
 end
 
 function RNScreen:getRNObjectWithHighestLevelOn(x, y)
