@@ -200,6 +200,10 @@ local function fieldAccessListener(self, key)
             object.x = xx
             object.y = yy
         end
+
+        if key ~= nil and key == "rotation" then
+            object.rotation = object:getProp():getRot()
+        end
     end
 
     if object.isPhysical == true then
@@ -315,9 +319,6 @@ function RNObject:innerNew(o)
         visible = true,
         touchListener = nil,
         onTouchDownListener = nil,
-        onTouchDownParam = nil,
-        onTouchUpParam = nil,
-        onTouchMoveParam = nil,
         children = {},
         childrenSize = 0,
         currentRefX = 0,
@@ -326,6 +327,7 @@ function RNObject:innerNew(o)
         tileDeck = nil,
         rotation = 0,
         touchable = false,
+        swapImage = nil,
         xInGroup = 0,
         yInGroup = 0,
         --physic metamerge
@@ -500,18 +502,9 @@ function RNObject:initWithMoaiImage(moaiImage)
     self.gfxQuad:setUVRect(0, 0, u, v)
 
 
-
-
-
     self.prop:setDeck(self.gfxQuad)
     self.gfxQuad:setRect(-self.originalWidth / 2, -self.originalHeight / 2, (self.originalWidth) / 2, (self.originalHeight) / 2)
     self.prop:setPriority(1)
-    
-    local scaleX, scaleY = self.prop:getScl()
-    self.scaleX = scaleX
-    self.scaleY = scaleY
-
-
 end
 
 
@@ -665,6 +658,10 @@ function RNObject:loadRect(width, height, rgb)
     self.prop:setPriority(1)
 end
 
+function RNObject:setScissorRect(scissorRect)
+    if self.prop and self.prop.setScissorRect then self.prop:setScissorRect(scissorRect) end
+end
+
 function RNObject:setPenColor(r, g, b, alpha)
     self.shapeR, self.shapeG, self.shapeB = r * 0.00392, g * 0.00392, b * 0.00392
     if alpha ~= nil then
@@ -715,7 +712,7 @@ end
 
 
 function RNObject:setIDInScreen(id)
-    self.idInScreen = id
+    --    self.idInScreen = id
 end
 
 function RNObject:animate(keyframe, executed, value)
@@ -786,37 +783,6 @@ function RNObject:play(sequenceName, speed, repeatTimes, onStop)
         for i = 1, table.getn(self.sequenceList), 1 do
             if self.sequenceList[i].name == sequenceName then rightSequenceToPlay = i end
         end
-    end
-    local rightSequence = self.sequenceList[rightSequenceToPlay]
-    --set sequence values
-    rightSequence.timeRepeated = 0
-    rightSequence.currentFrame = 0
-    if speed ~= nil then rightSequence.speed = speed end
-    if repeatTimes ~= nil then rightSequence.repeatTimes = repeatTimes end
-    if onStop ~= nil then rightSequence.onStop = onStop end
-
-
-    --stop eventual previous animation
-    if self.timer ~= nil then self.timer = nil end
-    if self.curve ~= nil then self.curve = nil end
-
-    --create new timer and stop
-    self.timer = MOAITimer.new()
-    self.timer:setMode(MOAITimer.CONTINUE)
-    --create new curve
-    self.curve = MOAIAnimCurve.new()
-    --assign the curve to the timer
-    self.timer:setCurve(self.curve)
-    self.timer.obj = self
-
-    local timer = self.timer
-    local curve = self.curve
-
-    --create keys
-    local framesInSequence = table.getn(rightSequence.frameOrder)
-    curve:reserveKeys(framesInSequence)
-    for i = 1, framesInSequence do
-        curve:setKey(i, i, i, MOAIEaseType.LINEAR, 1)
     end
     local rightSequence = self.sequenceList[rightSequenceToPlay]
     --set sequence values
@@ -928,16 +894,11 @@ function RNObject:setSize(Sx, Sy)
 end
 
 function RNObject:setLevel(value)
-
     self.prop:setPriority(value)
     self.parentGroup:inserLevel(self:getLevel())
 end
 
 function RNObject:getLevel()
-
-
-    --print("priority for object", self.prop:getPriority())
-
     return self.prop:getPriority()
 end
 
@@ -950,9 +911,6 @@ function RNObject:bringToFront()
 end
 
 function RNObject:putOver(object)
-
-   -- print("putting over object at level",object:getLevel()) 
-
     self.prop:setPriority(object:getLevel() + 1)
     self.parentGroup:inserLevel(self:getLevel())
 end
@@ -1119,8 +1077,6 @@ end
 
 function RNObject:setY(y)
 
-
-
     if self.isPhysical == false then
         local tmpX = self.x
         local tmpY = self.currentRefY + y
@@ -1190,7 +1146,7 @@ function RNObject:addGlobalEventListener(eventName, func)
     return index
 end
 
-
+-- Todo: check to remove.
 function RNObject:isInRange(x, y)
 
     local buttonx = x
@@ -1219,43 +1175,22 @@ end
 function RNObject:onEvent(event)
 
     if event.phase == "began" and self.visible and self.onTouchDownListener ~= nil then
-            if self.onTouchDownParam then
-                --print("button on touch down")
-                self.onTouchDownListener(event, self.onTouchDownParam)
-            else
-                self.onTouchDownListener(event)
-            end    
-            return true
+        self.onTouchDownListener(event)
+        return true
     end
 
     if event.phase == "moved" and self.visible and self.onTouchMoveListener ~= nil then
-        
-        if self.onTouchMoveParam then
-            self.onTouchMoveListener(event, self.onTouchMoveParam)
-        else
-            self.onTouchMoveListener(event)
-        end  
-    
+        self.onTouchMoveListener(event)
         return true
     end
 
     if event.phase == "ended" and self.visible and self.onTouchUpListener ~= nil then
-        if self.onTouchUpParam then
-            self.onTouchUpListener(event, self.onTouchUpParam)
-        else
-            self.onTouchUpListener(event)
-        end    
+        self.onTouchUpListener(event)
         return true
     end
 
     if event.phase == "cancelled" and self.visible and self.onTouchUpListener ~= nil then
-        
-        print("canceled")
-        if self.onTouchUpParam then
-            self.onTouchUpListener(event, self.onTouchUpParam)
-        else
-            self.onTouchUpListener(event)
-        end 
+        self.onTouchUpListener(event)
         return true
     end
 end
@@ -1272,21 +1207,9 @@ function RNObject:setOnTouchDown(func)
     self.onTouchDownListener = func
 end
 
-function RNObject:setOnTouchDown(func, param)
-    self:setTouchable(true)
-    self.onTouchDownListener = func
-    self.onTouchDownParam = param
-end
-
 function RNObject:setOnTouchMove(func)
     self:setTouchable(true)
     self.onTouchMoveListener = func
-end
-
-function RNObject:setOnTouchMove(func, param)
-    self:setTouchable(true)
-    self.onTouchMoveListener = func
-    self.onTouchMoveParam = param
 end
 
 function RNObject:setOnTouchUp(func)
@@ -1294,14 +1217,16 @@ function RNObject:setOnTouchUp(func)
     self.onTouchUpListener = func
 end
 
-function RNObject:setOnTouchUp(func, param)
-    self:setTouchable(true)
-    self.onTouchUpListener = func
-    self.onTouchUpParam = param
-end
 function RNObject:setOnTouchCancel(func)
     self:setTouchable(true)
     self.onTouchCancelListener = func
+end
+
+function RNObject:setGlobalTouchListener(func)
+    self:setOnTouchDown(func)
+    self:setOnTouchMove(func)
+    self:setOnTouchUp(func)
+    self:setOnTouchCancel(func)
 end
 
 function RNObject:getTranslatedLocation(x, y)
@@ -1343,7 +1268,9 @@ function RNObject:remove()
 
     if self.tmplistener ~= nil then RNListeners:removeEventListener("enterFrame", self.tmplistener) end
 
-    self.scene:removeRNObject(self)
+    if self.layer ~= nil then
+        self.scene:removeRNObject(self)
+    end
     --print_r(self.scene)
     if self.isPhysical == true then
         self.physicObject:remove()
@@ -1357,12 +1284,32 @@ function RNObject:remove()
     if self.font ~= nil then
         self.font = nil
     end
+    if self.textbox ~= nil then
+        self.textbox = nil
+    end
+
+    if self.style ~= nil then
+        self.style = nil
+    end
+
+    if self.stylesList ~= nil then
+        for i = 1, #self.stylesList do
+            print(i)
+            self.stylesList[i] = nil
+        end
+        self.styleList = nil
+    end
+
+    self:setOnTouchUp(nil)
+    self:setOnTouchDown(nil)
+    self:setOnTouchMove(nil)
+
     self.prop:setDeck(nil)
     self.prop = nil
     self.deck = nil
     self.tileDeck = nil
     self = nil
-   -- collectgarbage()
+    --    collectgarbage()
 end
 
 --if it's awake (returns boolean)

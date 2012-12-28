@@ -45,8 +45,6 @@ local function fieldChangedListener(self, key, value)
 
         self.lastx = value
     end
-    
-
 
     if key ~= nil and key == "y" then
 
@@ -64,13 +62,8 @@ local function fieldChangedListener(self, key, value)
         end
 
         for i = 1, self.numChildren, 1 do
-            
-           -- print("moving object", i)
-        
             local anObject = self.displayObjects[i]
             anObject.y = anObject.y + deltay
-            
-            --print("anObject.y", anObject.y)
         end
 
 
@@ -134,6 +127,7 @@ function RNGroup:setAlpha(value)
 end
 
 function RNGroup:getAllNonGroupChildren()
+    --returns all children , sub-groups excluded
     local t = {}
     for i, v in ipairs(self.displayObjects) do
         if v:getType() == "RNGroup" then
@@ -142,7 +136,6 @@ function RNGroup:getAllNonGroupChildren()
                 t[#t + 1] = k
             end
         else
-           -- print("#t", #t)
             t[#t + 1] = v
         end
     end
@@ -151,6 +144,7 @@ function RNGroup:getAllNonGroupChildren()
 end
 
 function RNGroup:getAllChildren()
+    --returns all children , sub-groups included
     local t = {}
     for i, v in ipairs(self.displayObjects) do
         if v:getType() == "RNGroup" then
@@ -166,13 +160,6 @@ function RNGroup:getAllChildren()
 end
 
 function RNGroup:flattern(value)
-
-    if (value == nil) then
-    
-        print ("*************ERROR********* RNGroup:flattern - level is nil")
-
-    end
-
     for i, v in ipairs(self:getAllChildren()) do
         v:setLevel(value + i)
     end
@@ -212,8 +199,8 @@ function RNGroup:insert(object, resetTransform)
     else
 
         if resetTransform == true then
-            object.x = 0
-            object.y = 0
+            object.x = self.x
+            object.y = self.y
         end
 
         if object.parentGroup ~= nil and object:getType() ~= "RNMap" then
@@ -225,26 +212,18 @@ function RNGroup:insert(object, resetTransform)
 
         local level = self:getHighestLevel() + 1
 
-        object.xInGroup = object.x
-        object.yInGroup = object.y
 
         object:setLevel(level)
 
-        if (level == nil) then
-    
-            print ("*************ERROR********* RNGroup:inserLevel - level is nil")
-
-        end
-
 
         self.levels[level] = level
-
-        --print("level for object", level)
 
         self.numChildren = self.numChildren + 1
         self.displayObjects[self.numChildren] = object
         object:setIDInGroup(self.numChildren)
     end
+
+    if object.setScissorRect and self.scissorRect ~= nil then object:setScissorRect(self.scissorRect) end
 end
 
 function RNGroup:removeChild(id)
@@ -266,22 +245,27 @@ function RNGroup:removeChild(id)
 end
 
 function RNGroup:inserLevel(level)
-
-    if (level == nil) then
-    
-        print ("*************ERROR********* RNGroup:inserLevel - level is nil")
-
-    end
-
     self.levels[level] = level
 end
 
 function RNGroup:getLowestLevel()
-    return math.min(unpack(self.levels))
+    local t = -1
+    for i, v in pairs(self.levels) do
+        if t > v then
+            t = v
+        end
+    end
+    return t
 end
 
 function RNGroup:getHighestLevel()
-    return math.max(unpack(self.levels))
+    local t = -1
+    for i, v in pairs(self.levels) do
+        if t < v then
+            t = v
+        end
+    end
+    return t
 end
 
 function RNGroup:sendToBottom(object)
@@ -299,6 +283,20 @@ end
 function RNGroup:setReferencePoint(referencePoint)
 end
 
+function RNGroup:getChild(value)
+    local o
+    if type(value) == "string" then
+        for i, v in ipairs(self:getAllChildren()) do
+            if v.name == value then
+                o = v
+            end
+        end
+    else
+        o = self.displayObjects[value]
+    end
+    return o
+end
+
 function RNGroup:getSize()
     return self.numChildren
 end
@@ -307,8 +305,6 @@ function RNGroup:setFocus(value)
 end
 
 function RNGroup:remove()
-   -- print("remove group")
-    
     for i = 1, #self.displayObjects do
         self.displayObjects[1]:remove()
     end
@@ -317,7 +313,7 @@ function RNGroup:remove()
     end
     self.prop = nil
     self = nil
-   -- collectgarbage()
+    --    collectgarbage()
 end
 
 
@@ -331,9 +327,26 @@ end
 function RNGroup:setVisible(value)
     for i = 0, self.numChildren - 1 do
         local anObject = self.displayObjects[i]
-        if anObject ~= nil and type(anObject.getProp) ~= "table" and anObject:getProp() ~= nil then
-            anObject.visible = value
+        if anObject ~= nil then
+            if anObject.getType ~= nil then
+                if anObject:getType() ~= "RNButton" then
+                    if anObject ~= nil and type(anObject.getProp) ~= "table" and anObject:getProp() ~= nil then
+                        anObject.visible = value
+                    end
+                else
+                    anObject.visible = value
+                end
+            end
         end
+    end
+end
+
+function RNGroup:setScissorRect(scissorRect)
+    self.scissorRect = scissorRect or nil
+    if self.displayObjects == nil then return end
+
+    for i = 1, #self.displayObjects do
+        if self.displayObjects[i].setScissorRect then self.displayObjects[i]:setScissorRect(self.scissorRect) end
     end
 end
 

@@ -15,7 +15,7 @@
 times = 0
 local background = RNFactory.createImage("images/background-purple.png")
 
-text = RNFactory.createText("Times 0", { size = 10, top = 5, left = 5, width = 200, height = 50 })
+text = RNFactory.createText("Times 0", { size = 20, top = 5, left = 5, width = 200, height = 50 })
 
 local function count()
     times = times + 1

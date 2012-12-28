@@ -23,7 +23,7 @@ RNButton = require("rapanui-sdk/RNButton")
 RNEvent = require("rapanui-sdk/RNEvent")
 RNScreen = require("rapanui-sdk/RNScreen")
 RNWrappedEventListener = require("rapanui-sdk/RNWrappedEventListener")
-
+RNLayer = require("rapanui-sdk/RNLayer")
 
 -- Touch Listeners requires
 
@@ -33,6 +33,8 @@ RNInputManager = require("rapanui-sdk/RNInputManager")
 RNUtil = require("rapanui-sdk/RNUtil")
 RNUnit = require("rapanui-sdk/RNUnit")
 RNGroup = require("rapanui-sdk/RNGroup")
+
+
 RNTransition = require("rapanui-sdk/RNTransition")
 RNPhysics = require("rapanui-sdk/RNPhysics")
 
@@ -72,6 +74,7 @@ RNTimer = require("rapanui-sdk/RNTimer")
 
 RNGraphicsManager = require("rapanui-sdk/RNGraphicsManager")
 
+RNBitmapText = require("rapanui-sdk/RNBitmapText")
 --starts main thread
 RNMainThread.startMainThread()
 

@@ -30,7 +30,6 @@ local function fieldChangedListenerRNText(self, key, value)
     end
 
     if key ~= nil and key == "y" then
-
         local tmpX = self.x
         local tmpY = value
 
@@ -86,74 +85,121 @@ end
 
 
 
-function RNText:initWithText2(text, font, size, width, height, alignment)
-    self.charcodes = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890 .,:;!?()&/-'
+function RNText:initWithText2(text, font, size, width, height, hAlignment, vAlignment)
     self.fontName = font
 
+
     if type(font) == "string" then
-        if RNGraphicsManager:getAlreadyAllocatedFont(font, size) then
-            font = RNGraphicsManager:getFontByPath(font, size)
+        if RNGraphicsManager:getAlreadyAllocated(font) then
+            font = RNGraphicsManager:getFontByPath(font)
         else
-            font = RNGraphicsManager:allocateFont(font, self.charcodes, size, 163)
+            font = RNGraphicsManager:allocateFont(font)
         end
     end
 
+    if vAlignment == nil then
+        vAlignment = hAlignment
+    end
+
     self.font = font
-
-    self.locatingMode = CENTERED_MODE
     self.text = text
-
+    self.locatingMode = CENTERED_MODE
     self.name = text
     self.visible = true
 
     self.textbox = MOAITextBox.new()
-    self.prop = self.textbox
-    self.text = text
 
+    self.style = self:setStyle(font, size, 1, { 255, 255, 255, 255 })
+    self.r = 255
+    self.g = 255
+    self.b = 255
+    self.textbox:setStyle(self.style)
     self.textbox:setString(self.text)
-    self.textbox:setFont(self.font)
-    self.textbox:setTextSize(size*2)
-
-    --self.textbox:setStyle ( newStyle ( font, 64 ))
-    -- S.S. updates for scaling
-    CONTENT_SCALE_FACTOR = 1
-
-    -- multiply it all by 2 since we start with 
-    -- retina and then scale down on non-retina devices
-    --self.textbox:setTextSize(size*CONTENT_SCALE_FACTOR, 163)
-
     self.textbox:setRect(0, 0, width, height)
-    self.textbox:setAlignment(alignment)
+    self.textbox:setAlignment(hAlignment, vAlignment)
+    self.prop = self.textbox
+    self.size = size
 
-    self:setTextColor(255, 255, 255)
+    self.textbox:setGlyphScale(0.75)
+
+    self.stylesList = {}
 
     return self, self.font
 end
 
+function RNText:setStyle(font, size, scale, color)
+    local style = MOAITextStyle.new()
+    style:setFont(font)
+    style:setSize(size)
+    style:setScale(scale or 1)
+    style:setColor(color[1] / 255, color[2] / 255, color[3] / 255, color[4] / 255)
+    return style;
+end
+
+function RNText:addStyle(name, font, size, color)
+    local style = MOAITextStyle.new()
+    self.stylesList[#self.stylesList + 1] = style
+
+    if type(font) == "string" then
+        if RNGraphicsManager:getAlreadyAllocated(font) then
+            font = RNGraphicsManager:getFontByPath(font)
+        else
+            font = RNGraphicsManager:allocateFont(font)
+        end
+    end
+
+    if color == nil then
+        color = { 255, 255, 255, 255 }
+    end
+
+    style:setFont(font)
+    style:setSize(size)
+    style:setColor(color[1] / 255, color[2] / 255, color[3] / 255, color[4] / 255)
+
+    self.textbox:setStyle(name, style)
+
+    return style;
+end
+
+function RNText:setTextSize(value)
+    self.style:setSize(value)
+end
 
 function RNText:setSize(width, height)
     self.textbox:setRect(self.x, self.y, self.x + width, self.y + height)
 end
 
-function RNText:setTextSize(size)
-    self.font:loadFromTTF(self.fontName .. ".TTF", self.charcodes, size, 163)
-    self.textbox:setString(self.text)
-    self.textbox:setFont(self.font)
-    --self.textbox:setTextSize(size, 163)
-    
-    -- S.S. updates for scaling
-    CONTENT_SCALE_FACTOR = 2
-
-    -- multiply it all by 2 since we start with 
-    -- retina and then scale down on non-retina devices
-    self.textbox:setTextSize(size*CONTENT_SCALE_FACTOR)
-
-    
-end
-
-
 function RNText:setText(text)
     self.textbox:setString(text)
+    if self.text ~= text then
+        self.text = text
+    end
+end
+
+function RNText:spool()
+    self.textbox:spool()
+end
+
+function RNText:highlight(index, size, r, g, b, a)
+    self.textbox:setHighlight(index, size, r / 255, g / 255, b / 255, a)
+end
+
+function RNText:setVisible(value)
+    --NOTE: this is a workaround becouse MOAI's setVisible has a bug.
+
+    if value then
+        self:setAlpha(1)
+    else
+        self:setAlpha(0)
+    end
+end
+
+function RNText:setScissorRect(scissorRect)
+    self:getProp():setScissorRect(scissorRect)
+end
+
+function RNText:getText()
+    return self.text
 end
 
 function RNText:getType()

@@ -34,7 +34,7 @@ end
 
 
 function RNMapLayer:setIDInScreen(id)
-    self.idInScreen = id
+--    self.idInScreen = id
 end
 
 
@@ -309,7 +309,7 @@ function RNMapLayer:createPhysicBodies()
         shape
 
     --]]
-    currentLayer = self
+    local currentLayer = self
     if currentLayer.imagesToBePhysical ~= nil then
         for i = 1, table.getn(currentLayer.imagesToBePhysical), 1 do
             currentTile = currentLayer.imagesToBePhysical[i]

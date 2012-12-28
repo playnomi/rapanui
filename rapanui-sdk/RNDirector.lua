@@ -14,7 +14,7 @@
 
 --global vars
 --global time for transitions
-local TIME = 100
+local TIME = 800
 --other globals
 local CURRENT_SCENE
 local NEXT_SCENE
@@ -46,6 +46,26 @@ function RNDirector:isTransitioning()
     return TRANSITIONING
 end
 
+function RNDirector:getCurrentScene()
+    return CURRENT_SCENE
+end
+
+function RNDirector:getNextScene()
+    return NEXT_SCENE
+end
+
+function RNDirector:getCurrentSceneGroup()
+    return CURRENT_SCENE_GROUP
+end
+
+function RNDirector:getCurrentSceneName()
+    return CURRENT_SCENE_NAME
+end
+
+function RNDirector:getNextSceneGroup()
+    return NEXT_SCENE_GROUP
+end
+
 --add a scene to Director and set it to invisible . scene must be an instance of RNGroup
 function RNDirector:addScene(scene)
     local len = table.getn(self.scenes)
@@ -58,11 +78,10 @@ function RNDirector:setTime(value)
     TIME = value
 end
 
-local coll = collectgarbage
 local unloadScene = function(moduleName)
     if moduleName ~= "main" and type(package.loaded[moduleName]) == "table" then
         package.loaded[moduleName] = nil
-        coll()
+        MOAISim.forceGarbageCollection()
     end
 end
 
@@ -86,17 +105,13 @@ function RNDirector:showScene(name, effect, onEndListener)
     if TRANSITIONING == false then
         TRANSITIONING = true
         if effect == "slidetoleft" then
-            self:slideout(contentlwidth, 0)
+            self:slideout(RNFactory.outWidth, 0)
         elseif effect == "slidetoright" then
-            self:slideout(-contentlwidth, 0)
-        elseif effect == "slideovertotop" then
-            self:slideover(0,  contentHeight)
+            self:slideout(-RNFactory.outWidth, 0)
         elseif effect == "slidetotop" then
-            self:slideout(0, contentHeight)
+            self:slideout(0, RNFactory.outHeight)
         elseif effect == "slidetobottom" then
-            self:slideout(0, -contentHeight)
-        elseif effect == "slideofftobottom" then
-            self:slideoff(0, -contentHeight)    
+            self:slideout(0, -RNFactory.outHeight)
         elseif effect == "pop" then
             self:popIn()
         elseif effect == "fade" then
@@ -107,6 +122,8 @@ function RNDirector:showScene(name, effect, onEndListener)
             self:popIn()
         end
     end
+
+    return NEXT_SCENE
 end
 
 function RNDirector:hideCurrentScene(effect)
@@ -131,6 +148,8 @@ function RNDirector:popIn()
         DIRECTOR.onEndListener:call({})
         DIRECTOR.onEndListener = nil
     end
+
+    MOAISim.forceGarbageCollection()
 end
 
 
@@ -141,9 +160,9 @@ function RNDirector:slideout(xx, yy)
     if CURRENT_SCENE_GROUP ~= nil then
         for i = 1, table.getn(CURRENT_SCENE_GROUP.displayObjects), 1 do
             if i == table.getn(CURRENT_SCENE_GROUP.displayObjects) then --call transition end callback only for last element
-                trn:run(CURRENT_SCENE_GROUP.displayObjects[i], { type = "move", x = CURRENT_SCENE_GROUP.displayObjects[i].x - xx, y = CURRENT_SCENE_GROUP.displayObjects[i].y, time = TIME, onComplete = slideEnd })
+                trn:run(CURRENT_SCENE_GROUP.displayObjects[i], { type = "move", x = CURRENT_SCENE_GROUP.displayObjects[i].x - xx, y = CURRENT_SCENE_GROUP.displayObjects[i].y - yy, time = TIME, onComplete = slideEnd })
             else
-                trn:run(CURRENT_SCENE_GROUP.displayObjects[i], { type = "move", x = CURRENT_SCENE_GROUP.displayObjects[i].x - xx, y = CURRENT_SCENE_GROUP.displayObjects[i].y, time = TIME })
+                trn:run(CURRENT_SCENE_GROUP.displayObjects[i], { type = "move", x = CURRENT_SCENE_GROUP.displayObjects[i].x - xx, y = CURRENT_SCENE_GROUP.displayObjects[i].y - yy, time = TIME })
             end
         end
     end
@@ -164,72 +183,6 @@ function RNDirector:slideout(xx, yy)
         end
     end
 end
-
--- slide effect
-function RNDirector:slideover(xx, yy)
-
-    --start slide
-    if CURRENT_SCENE_GROUP ~= nil then
-        for i = 1, table.getn(CURRENT_SCENE_GROUP.displayObjects), 1 do
-            if i == table.getn(CURRENT_SCENE_GROUP.displayObjects) then --call transition end callback only for last element
-                trn:run(CURRENT_SCENE_GROUP.displayObjects[i], { type = "move", x = CURRENT_SCENE_GROUP.displayObjects[i].x - xx, y = CURRENT_SCENE_GROUP.displayObjects[i].y, time = TIME, onComplete = slideEnd })
-            else
-                trn:run(CURRENT_SCENE_GROUP.displayObjects[i], { type = "move", x = CURRENT_SCENE_GROUP.displayObjects[i].x - xx, y = CURRENT_SCENE_GROUP.displayObjects[i].y, time = TIME })
-            end
-        end
-    end
-
-
-    -- if next scene has a value go for transition
-    if NEXT_SCENE ~= nil then
-        -- change the current scene group
-        NEXT_SCENE_GROUP = NEXT_SCENE.onCreate()
-        NEXT_SCENE_GROUP.x = xx
-        NEXT_SCENE_GROUP.y = yy
-        --start slide
-        for i = 1, table.getn(NEXT_SCENE_GROUP.displayObjects), 1 do
-            if CURRENT_SCENE_GROUP == nil and i == table.getn(NEXT_SCENE_GROUP.displayObjects) then --if CURRENT_SCENE nil we have to call endSlide on last element transition
-                trn:run(NEXT_SCENE_GROUP.displayObjects[i], { type = "move", x = NEXT_SCENE_GROUP.displayObjects[i].x - xx, y = NEXT_SCENE_GROUP.displayObjects[i].y - yy, time = TIME, onComplete = slideEnd })
-            else
-                trn:run(NEXT_SCENE_GROUP.displayObjects[i], { type = "move", x = NEXT_SCENE_GROUP.displayObjects[i].x - xx, y = NEXT_SCENE_GROUP.displayObjects[i].y - yy, time = TIME })
-            end
-        end
-    end
-end
-
--- slide effect
-function RNDirector:slideoff(xx, yy)
-
-    --start slide
-    if CURRENT_SCENE_GROUP ~= nil then
-        for i = 1, table.getn(CURRENT_SCENE_GROUP.displayObjects), 1 do
-            if i == table.getn(CURRENT_SCENE_GROUP.displayObjects) then --call transition end callback only for last element
-                trn:run(CURRENT_SCENE_GROUP.displayObjects[i], { type = "move", x = CURRENT_SCENE_GROUP.displayObjects[i].x - xx, y = CURRENT_SCENE_GROUP.displayObjects[i].y-yy-.2*yy, time = TIME, onComplete = slideEnd })
-            else
-                trn:run(CURRENT_SCENE_GROUP.displayObjects[i], { type = "move", x = CURRENT_SCENE_GROUP.displayObjects[i].x - xx, y = CURRENT_SCENE_GROUP.displayObjects[i].y-yy-.2*yy, time = TIME })
-            end
-        end
-    end
-
-
-    -- if next scene has a value go for transition
-    if NEXT_SCENE ~= nil then
-        -- change the current scene group
-        NEXT_SCENE_GROUP = NEXT_SCENE.onCreate()
-        NEXT_SCENE_GROUP.x = xx
-        NEXT_SCENE_GROUP.y = yy
-        --start slide
-        for i = 1, table.getn(NEXT_SCENE_GROUP.displayObjects), 1 do
-            if CURRENT_SCENE_GROUP == nil and i == table.getn(NEXT_SCENE_GROUP.displayObjects) then --if CURRENT_SCENE nil we have to call endSlide on last element transition
-                trn:run(NEXT_SCENE_GROUP.displayObjects[i], { type = "move", x = NEXT_SCENE_GROUP.displayObjects[i].x - xx, y = NEXT_SCENE_GROUP.displayObjects[i].y-yy, time = TIME, onComplete = slideEnd })
-            else
-                trn:run(NEXT_SCENE_GROUP.displayObjects[i], { type = "move", x = NEXT_SCENE_GROUP.displayObjects[i].x - xx, y = NEXT_SCENE_GROUP.displayObjects[i].y-yy, time = TIME })
-            end
-        end
-    end
-end
-
-
 
 
 function slideEnd()
@@ -249,7 +202,7 @@ function slideEnd()
         DIRECTOR.onEndListener:call({})
         DIRECTOR.onEndListener = nil
     end
-    --collectgarbage("collect")
+    MOAISim.forceGarbageCollection()
 end
 
 
@@ -353,7 +306,7 @@ function RNDirector:endFade()
         DIRECTOR.onEndListener:call({})
         DIRECTOR.onEndListener = nil
     end
-    --collectgarbage("collect")
+    MOAISim.forceGarbageCollection()
 end
 
 return RNDirector

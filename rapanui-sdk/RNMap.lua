@@ -111,6 +111,13 @@ function RNMap:setDrawMode(drawmode)
     self.drawMode = drawmode
 end
 
+function RNMap:setScissorRect(scissorRect)
+	if not self.layers then return end	
+    for key, value in pairs(self.layers) do
+		value.prop:setScissorRect(scissorRect)
+    end
+end
+
 function RNMap:getLayers()
     return self.layers
 end
@@ -273,9 +280,10 @@ function RNMap:remove()
         local layer = self.layers[i]
         layer:remove()
     end
-
-    if (self.parentGroup ~= nil) then
-        self.parentGroup:removeChild(self.idInGroup)
+    if self.parentGroup.getType ~= nil then
+        if (self.parentGroup:getType() == "RNGroup") then
+            self.parentGroup:removeChild(self.idInGroup)
+        end
     end
 
     for i, v in pairs(self.tilesets) do
@@ -290,7 +298,7 @@ function RNMap:remove()
     self.tilesets = nil
     self.layers = nil
     self = nil
-    collectgarbage()
+    --    collectgarbage()
 end
 
 function RNMap:getDelta(a, b)
@@ -356,7 +364,7 @@ function RNMap:getAllProps()
         table.insert(props, layer:getProp())
     end
 
-
+	
     return props
 end
 
