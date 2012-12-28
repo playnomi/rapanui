@@ -12,7 +12,7 @@
 -- Moai (http://getmoai.com/) and RapaNui in the credits of your program.
 ]]
 
-local background = RNFactory.createImage("images/background-landscape-hd.png")
+local background = RNFactory.createImage("images/background-landscape.png")
 
 anImage = RNFactory.createImage("images/image2.png")
 
