@@ -20,7 +20,6 @@ contentHeight = nil
 contentWidth = nil
 contentScaleX = nil
 contentScaleY = nil
-contentWidth = nil
 screenOriginX = nil
 screenOriginY = nil
 statusBarHeight = nil
@@ -44,16 +43,48 @@ RNFactory.height = 0
 
 function RNFactory.init()
 
+
+-- S.S. alternate screen scaling
+if (true) then
+
     local lwidth, lheight, screenlwidth, screenHeight
     local screenX, screenY
 
+    if config.landscape == false then
+        screenX, screenY = MOAIEnvironment.horizontalResolution, MOAIEnvironment.verticalResolution
+    else
+        screenX, screenY = MOAIEnvironment.horizontalResolution, MOAIEnvironment.verticalResolution
+    end
 
+    print ("screen resolution", screenX, screenY)
+    
+    local name = rawget(_G, 'name') -- looking for *global* 'name'
+    if name == nil then
+        name = "mainwindow"
+    end
+    
+    if (MOAIEnvironment.osBrand == "iOS") then
+        screenX, screenY = MOAIGfxDevice.getViewSize()
+    else
+        print("setting screen variables for android using MOAIEnvironment.screenWidth, MOAIEnvironment.screenHeight")
+    end
 
+    print ("new setting screen x", screenX, "screen y", screenY)
+
+    if screenX ~= nil then --if physical screen
+        lwidth, lheight, screenlwidth, screenHeight = screenX, screenY, screenX, screenY
+    else
+        lwidth, lheight, screenlwidth, screenHeight = config.sizes[config.device][1], config.sizes[config.device][2], config.sizes[config.device][3], config.sizes[config.device][4]
+    end
+
+    landscape, device, sizes, screenX, screenY = nil
+
+    --  lwidth, lheight from the SDConfig.lua
 
     RNFactory.width = lwidth
     RNFactory.height = lheight
 
-    contentlwidth = lwidth
+    contentWidth = lwidth
     contentHeight = lheight
 
     RNFactory.outWidth = RNFactory.width
@@ -65,65 +96,14 @@ function RNFactory.init()
     RNFactory.screenUnitsX = 0
     RNFactory.screenUnitsY = 0
 
+    --if we have to stretch graphics to screen
 
+    if config.stretch.status == true then
 
+        print ("now stretching the screen", config.stretch.graphicsDesign.w, config.stretch.graphicsDesign.h)
 
-
-
-
-
-    if config.landscape == false then
-
-        screenX, screenY = MOAIEnvironment.horizontalResolution, MOAIEnvironment.verticalResolution
-    
-    else
-
-        screenX, screenY = MOAIEnvironment.horizontalResolution, MOAIEnvironment.verticalResolution
-
-    end
-
-    print ("screen resolution", screenX, screenY)
-    
-    if (MOAIEnvironment.osBrand == "iOS") then
-    
-        screenX, screenY = MOAIGfxDevice.getViewSize() 
-
-    else 
-    
-        print("setting screen variables for android using MOAIEnvironment.screenWidth, MOAIEnvironment.screenHeight")
-        --screenX, screenY = MOAIEnvironment.screenWidth, MOAIEnvironment.screenHeight
-        --screenX, screenY = 480, 800
-            
-    end
-
-    print ("new setting screen x", screenX, "screen y", screenY)
-
-    if screenX ~= nil then --if physical screen
-        lwidth, lheight, screenlwidth, screenHeight = screenX, screenY, screenX, screenY
-    else
-        lwidth, lheight, screenlwidth, screenHeight = config.sizes[config.device][1], config.sizes[config.device][2], config.sizes[config.device][3], config.sizes[config.device][4]
-    end
-
-   -- if config.landscape == true then -- flip lwidths and Hieghts
-   --     lwidth, lheight = lheight, lwidth
-   --     screenlwidth, screenHeight = screenHeight, screenlwidth
-   -- end
-
-    landscape, device, sizes, screenX, screenY = nil
-
-    local name = rawget(_G, 'name') -- looking for *global* 'name'
-    if name == nil then
-        name = "mainwindow"
-    end
-
-    --  lwidth, lheight from the SDConfig.lua
-
-    if config.stretch == true then
-
-        print ("now stretching the screen")
-
-        TARGET_WIDTH = config.graphicsDesign.w
-        TARGET_HEIGHT = config.graphicsDesign.h
+        TARGET_WIDTH = config.stretch.graphicsDesign.w
+        TARGET_HEIGHT = config.stretch.graphicsDesign.h
         DEVICE_WIDTH = lwidth
         DEVICE_HEIGHT = lheight
 
@@ -132,24 +112,23 @@ function RNFactory.init()
 
         if realAspect > gameAspect then
 
-        SCREEN_UNITS_Y = TARGET_HEIGHT
-        SCREEN_UNITS_X = TARGET_HEIGHT * realAspect
+            SCREEN_UNITS_Y = TARGET_HEIGHT
+            SCREEN_UNITS_X = TARGET_HEIGHT * realAspect
 
         elseif realAspect < gameAspect then
-
-        SCREEN_UNITS_X = TARGET_WIDTH 
-        SCREEN_UNITS_Y = TARGET_WIDTH / realAspect
+    
+            SCREEN_UNITS_X = TARGET_WIDTH 
+            SCREEN_UNITS_Y = TARGET_WIDTH / realAspect
 
         else
 
-        SCREEN_UNITS_X = TARGET_WIDTH 
-        SCREEN_UNITS_Y = TARGET_HEIGHT	
+            SCREEN_UNITS_X = TARGET_WIDTH 
+            SCREEN_UNITS_Y = TARGET_HEIGHT	
 
         end
 
         print("openWindow screenlwidth, screenHeight", screenlwidth, screenHeight)
         print ("SCREEN_UNITS_X", SCREEN_UNITS_X, "SCREEN_UNITS_Y", SCREEN_UNITS_Y)
-
 
         MOAISim.openWindow(name, screenlwidth, screenHeight)
         RNFactory.screen:initWith(SCREEN_UNITS_X, SCREEN_UNITS_Y, screenlwidth, screenHeight)
@@ -157,12 +136,21 @@ function RNFactory.init()
         RNFactory.width = screenlwidth
         RNFactory.height = screenHeight
 
-        contentlwidth = SCREEN_UNITS_X
+        contentWidth = SCREEN_UNITS_X
         contentHeight = SCREEN_UNITS_Y
+        
+        RNFactory.outWidth = config.stretch.graphicsDesign.w
+        RNFactory.outHeight = config.stretch.graphicsDesign.h
+
+        --RNFactory.screenXOffset = SCREEN_X_OFFSET
+        --RNFactory.screenYOffset = SCREEN_Y_OFFSET
+
+        RNFactory.screenUnitsX = SCREEN_UNITS_X
+        RNFactory.screenUnitsY = SCREEN_UNITS_Y
 
     else
 
-        print ("no screen scretch")
+        print("no screen scretch")
         print("openWindow screenlwidth, screenHeight", screenlwidth, screenHeight)
 
         MOAISim.openWindow(name, screenlwidth, screenHeight)
@@ -171,10 +159,45 @@ function RNFactory.init()
         RNFactory.width = lwidth
         RNFactory.height = lheight
 
-        contentlwidth = lwidth
+        contentWidth = lwidth
         contentHeight = lheight
+        
+        RNFactory.screenUnitsX = contentWidth
+        RNFactory.screenUnitsY = contentHeight
+        
+    end
 
-=======
+else
+ 
+    local lwidth, lheight, screenlwidth, screenHeight
+    local screenX, screenY = MOAIEnvironment.screenWidth, MOAIEnvironment.screenHeight
+
+    if screenX ~= nil then --if physical screen
+        lwidth, lheight, screenlwidth, screenHeight = screenX, screenY, screenX, screenY
+    else
+        lwidth, lheight, screenlwidth, screenHeight = config.sizes[config.device][1], config.sizes[config.device][2], config.sizes[config.device][3], config.sizes[config.device][4]
+    end
+
+    if config.landscape == true then -- flip lwidths and Hieghts
+        lwidth, lheight = lheight, lwidth
+        screenlwidth, screenHeight = screenHeight, screenlwidth
+    end
+
+    screenX, screenY = nil
+
+    local name = rawget(_G, 'name') -- looking for *global* 'name'
+    if name == nil then
+        name = "mainwindow"
+    end
+
+    --  lwidth, lheight from the SDConfig.lua
+
+    MOAISim.openWindow(name, screenlwidth, screenHeight)
+    RNFactory.screen:initWith(lwidth, lheight, screenlwidth, screenHeight)
+
+    RNFactory.width = lwidth
+    RNFactory.height = lheight
+
     contentWidth = lwidth
     contentHeight = lheight
 
@@ -284,63 +307,24 @@ function RNFactory.init()
             RNFactory.screenUnitsX = SCREEN_UNITS_X
             RNFactory.screenUnitsY = SCREEN_UNITS_Y
         end
->>>>>>> 92b2200ec423cd5a7e04301a0ef5d407b1f7975c
     end
+
+end
 
     RNFactory.calculateTouchValues()
 
-
-
-    RNInputManager.setGlobalRNScreen(RNFactory.screen)
+    RNInputManager.setGlobalRNScreen(RNFactory.screen)    
+       
 end
 
 function RNFactory.calculateTouchValues()
 
-<<<<<<< HEAD
-   --if we have to stretch graphics to screen
-    --if config.stretch == true then
-    --    RNFactory.screen.viewport:setSize(0, 0, lwidth, lheight)
-    --    RNFactory.screen.viewport:setScale(config.graphicsDesign.w, -config.graphicsDesign.h)
-    --end
-
-    RNFactory.calculateTouchValues()
-
-
-    RNInputManager.setGlobalRNScreen(screen)
-=======
-
-    local ofx = RNFactory.screenXOffset
-    local ofy = RNFactory.screenYOffset
-
-    local gx = RNFactory.screenUnitsX
-    local gy = RNFactory.screenUnitsY
-    local tx = RNFactory.width
-    local ty = RNFactory.height
-
-    --screen aspect without calculating offsets
-    local Ax = gx / (tx - ofx * 2)
-    local Ay = gy / (ty - ofy * 2)
-
-    local statusBar = 0
-
-    if config.iosStatusBar then
-        if MOAIEnvironment.iosRetinaDisplay then
-            statusBar = 40
-        else
-            statusBar = 20
-        end
-    end
-
-    RNFactory.statusBarHeight = statusBar
-    RNFactory.ofx = ofx
-    RNFactory.ofy = ofy
-    RNFactory.Ax = Ax
-    RNFactory.Ay = Ay
->>>>>>> 92b2200ec423cd5a7e04301a0ef5d407b1f7975c
-end
-
-
-function RNFactory.calculateTouchValues()
+print("touch values", RNFactory.screenXOffset, 
+                      RNFactory.screenYOffset,
+                      RNFactory.screenUnitsX,
+                      RNFactory.screenUnitsY,
+                      RNFactory.width,
+                      RNFactory.height)
 
 
     local ofx = RNFactory.screenXOffset
@@ -371,9 +355,6 @@ function RNFactory.calculateTouchValues()
     RNFactory.Ax = Ax
     RNFactory.Ay = Ay
 end
-
-
-
 
 -- extra method call to setup the underlying system
 RNFactory.init()
@@ -406,6 +387,7 @@ function RNFactory.createList(name, params)
     return list
 end
 
+-- S.S. add fast list view
 function RNFactory.createFastList(name, params)
     local list = RNFastListView:new()
     list.name = name
@@ -417,6 +399,7 @@ function RNFactory.createFastList(name, params)
     list:init()
     return list
 end
+
 
 function RNFactory.createPageSwipe(name, params)
     local pSwipe = RNPageSwipe:new()
@@ -466,12 +449,7 @@ function RNFactory.createImageFrom(image, layer, params, putOnScreen)
 
 
     local o = RNObject:new()
-    
-    local imageFilenameToLoad = image
-       
-    --print ("image to load", imageFilenameToLoad) 
-    
-    local o, deck = o:initWithImage2(imageFilenameToLoad)
+    local o, deck = o:initWithImage2(image)
 
     o.x = o.originalWidth / 2 + left
     o.y = o.originalHeight / 2 + top
@@ -490,8 +468,6 @@ function RNFactory.createImageFrom(image, layer, params, putOnScreen)
 end
 
 function RNFactory.createButton(image, params)
-<<<<<<< HEAD
-=======
     return RNFactory.createButtonFrom(image, RNFactory.screen.layers:get(RNLayer.MAIN_LAYER), params)
 end
 
@@ -504,7 +480,6 @@ function RNFactory.createButtonFrom(image, layer, params, putOnScreen)
     if putOnScreen == nil then
         putOnScreen = true
     end
->>>>>>> 92b2200ec423cd5a7e04301a0ef5d407b1f7975c
 
     local parentGroup, left, top
 
@@ -512,8 +487,8 @@ function RNFactory.createButtonFrom(image, layer, params, putOnScreen)
 
     local xOffset, yOffset = 0, 0
 
-    font = "arial-rounded.TTF"
-    size = 15
+    font =  "Helvetica"
+    size = 14
 
     vAlignment = MOAITextBox.CENTER_JUSTIFY
     hAlignment = MOAITextBox.CENTER_JUSTIFY
@@ -523,73 +498,6 @@ function RNFactory.createButtonFrom(image, layer, params, putOnScreen)
 
     if (params ~= nil) then
 
-<<<<<<< HEAD
-       if (params.top ~= nil) then
-            top = params.top
-       end
-
-       if (params.left ~= nil) then
-            left = params.left
-       end
-
-       if (params.parentGroup ~= nil) then
-            parentGroup = params.parentGroup
-       else
-            parentGroup = RNFactory.mainGroup
-       end
-
-       if (params.top ~= nil) then
-            top = params.top
-       end
-
-       if (params.left ~= nil) then
-            left = params.left
-       end
-
-       if (params.font ~= nil) then
-            font = params.font
-       end
-
-       if (params.size ~= nil) then
-            size = params.size
-       end
-
-        --[[
-       if (params.height ~= nil) then
-            height = params.height
-       end
-
-       if (params.width ~= nil) then
-            width = params.width
-       end
-       ]] --
-
-if (params.verticalAlignment ~= nil) then
-            vAlignment = params.verticalAlignment
-end
-
-if (params.horizontalAlignment ~= nil) then
-            hAlignment = params.horizontalAlignment
-end
-end
-
-if (params.xOffset ~= nil) then
-        xOffset = params.xOffset
-end
-
-if (params.yOffset ~= nil) then
-        yOffset = params.yOffset
-end
-
-    -- init of default RNButtonImage
-local rnButtonImage = RNObject:new()
-local rnButtonImage, deck = rnButtonImage:initWithImage2(image)
-
-    rnButtonImage.x = rnButtonImage.originalWidth / 2 + left
-    rnButtonImage.y = rnButtonImage.originalHeight / 2 + top
-
-    RNFactory.screen:addRNObject(rnButtonImage)
-=======
         if (params.top ~= nil) then
             top = params.top
         end
@@ -656,33 +564,23 @@ local rnButtonImage, deck = rnButtonImage:initWithImage2(image)
     if putOnScreen == true then
         RNFactory.screen:addRNObject(rnButtonImage, nil, layer)
     end
->>>>>>> 92b2200ec423cd5a7e04301a0ef5d407b1f7975c
 
 
     local rnButtonImageOver
 
     if params.imageOver ~= nil then
 
-<<<<<<< HEAD
-       rnButtonImageOver = RNObject:new()
-       rnButtonImageOver, deck = rnButtonImageOver:initWithImage2(params.imageOver)
-=======
         rnButtonImageOver = RNObject:new()
         rnButtonImageOver, deck = rnButtonImageOver:initWithImage2(params.imageOver)
->>>>>>> 92b2200ec423cd5a7e04301a0ef5d407b1f7975c
 
         rnButtonImageOver.x = rnButtonImageOver.originalWidth / 2 + left
         rnButtonImageOver.y = rnButtonImageOver.originalHeight / 2 + top
 
         rnButtonImageOver:setVisible(false)
 
-<<<<<<< HEAD
-        RNFactory.screen:addRNObject(rnButtonImageOver)
-=======
         if putOnScreen == true then
             RNFactory.screen:addRNObject(rnButtonImageOver, nil, layer)
         end
->>>>>>> 92b2200ec423cd5a7e04301a0ef5d407b1f7975c
     end
 
 
@@ -690,26 +588,17 @@ local rnButtonImage, deck = rnButtonImage:initWithImage2(image)
 
     if params.imageDisabled ~= nil then
 
-<<<<<<< HEAD
-       rnButtonImageDisabled = RNObject:new()
-       rnButtonImageDisabled, deck = rnButtonImageDisabled:initWithImage2(params.imageDisabled)
-=======
         rnButtonImageDisabled = RNObject:new()
         rnButtonImageDisabled, deck = rnButtonImageDisabled:initWithImage2(params.imageDisabled)
->>>>>>> 92b2200ec423cd5a7e04301a0ef5d407b1f7975c
 
         rnButtonImageDisabled.x = rnButtonImageDisabled.originalWidth / 2 + left
         rnButtonImageDisabled.y = rnButtonImageDisabled.originalHeight / 2 + top
 
         rnButtonImageDisabled:setVisible(false)
 
-<<<<<<< HEAD
-        RNFactory.screen:addRNObject(rnButtonImageDisabled)
-=======
         if putOnScreen == true then
             RNFactory.screen:addRNObject(rnButtonImageDisabled, nil, layer)
         end
->>>>>>> 92b2200ec423cd5a7e04301a0ef5d407b1f7975c
     end
 
     local rnText
@@ -722,15 +611,10 @@ local rnButtonImage, deck = rnButtonImage:initWithImage2(image)
 
     rnText = RNText:new()
     rnText, gFont = rnText:initWithText2(params.text, font, size, rnButtonImage.originalWidth, rnButtonImage.originalHeight, vAlignment, hAlignment)
-<<<<<<< HEAD
-
-    RNFactory.screen:addRNObject(rnText)
-=======
     if putOnScreen == true then
         RNFactory.screen:addRNObject(rnText, nil, layer)
     end
 
->>>>>>> 92b2200ec423cd5a7e04301a0ef5d407b1f7975c
     --     RNFactory.mainGroup:insert(rnText)
     rnText.x = left
     rnText.y = top
@@ -745,11 +629,7 @@ local rnButtonImage, deck = rnButtonImage:initWithImage2(image)
 
 
     if parentGroup ~= nil then
-<<<<<<< HEAD
-       parentGroup:insert(rnButton)
-=======
         parentGroup:insert(rnButton)
->>>>>>> 92b2200ec423cd5a7e04301a0ef5d407b1f7975c
     end
 
 
@@ -758,15 +638,6 @@ local rnButtonImage, deck = rnButtonImage:initWithImage2(image)
     rnButton.y = rnButtonImage.originalHeight / 2 + top
 
     if params.onTouchUp ~= nil then
-<<<<<<< HEAD
-       rnButton:setOnTouchUp(params.onTouchUp)
-    end
-
-    if params.onTouchDown ~= nil then
-       rnButton:setOnTouchDown(params.onTouchDown)
-    end
-
-=======
         rnButton:setOnTouchUp(params.onTouchUp)
     end
 
@@ -777,7 +648,6 @@ local rnButtonImage, deck = rnButtonImage:initWithImage2(image)
     if putOnScreen == true then
         rnButton.layer = layer
     end
->>>>>>> 92b2200ec423cd5a7e04301a0ef5d407b1f7975c
 
     return rnButton, deck
 end
@@ -1001,29 +871,14 @@ function RNFactory.createTextFrom(text, layer, params, putOnScreen)
         putOnScreen = true
     end
 
-    if (text == nil) then
-    
-        text = ""
-    
-    end
-
-
     local top, left, size, font, height, width, alignment
 
-<<<<<<< HEAD
-    -- defaults
-    --COOLVETI
-    --font = "COOLVETI"
-    --font = "HelveticaNeue"
     font = "Helvetica"
-    --font = "arial-rounded"
     size = 14
-=======
-    font = "arial-rounded.TTF"
-    size = 15
->>>>>>> 92b2200ec423cd5a7e04301a0ef5d407b1f7975c
     alignment = MOAITextBox.CENTER_JUSTIFY
     --LEFT_JUSTIFY, CENTER_JUSTIFY or RIGHT_JUSTIFY.
+
+    params.size = params.size
 
     if (params ~= nil) then
         if (params.top ~= nil) then
@@ -1051,14 +906,23 @@ function RNFactory.createTextFrom(text, layer, params, putOnScreen)
         end
 
         if (params.alignment ~= nil) then
-            alignment = params.alignment
+            hAlignment = params.alignment
         end
+
+        if (params.vAlignment ~= nil) then
+            vAlignment = params.vAlignment
+        end  
+        
+        if (params.hAlignment ~= nil) then
+            hAlignment = params.hAlignment
+        end  
+        
     end
 
     local rntext = RNText:new()
     local gFont
 
-    rntext, gFont = rntext:initWithText2(text, font, size, width, height, alignment)
+    rntext, gFont = rntext:initWithText2(text, font, size, width, height,  hAlignment, vAlignment )
 
     if putOnScreen == true then
         RNFactory.screen:addRNObject(rntext, nil, layer)

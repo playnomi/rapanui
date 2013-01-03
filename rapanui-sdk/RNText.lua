@@ -84,16 +84,14 @@ function RNText:new(o)
 end
 
 
-
 function RNText:initWithText2(text, font, size, width, height, hAlignment, vAlignment)
     self.fontName = font
 
-
     if type(font) == "string" then
-        if RNGraphicsManager:getAlreadyAllocated(font) then
-            font = RNGraphicsManager:getFontByPath(font)
+        if RNGraphicsManager:getAlreadyAllocatedBitmapFont(font, size) then
+            font = RNGraphicsManager:getBitmapFontByPath(font, size)
         else
-            font = RNGraphicsManager:allocateFont(font)
+            font = RNGraphicsManager:allocateBitmapFont(font, size)
         end
     end
 
@@ -115,12 +113,17 @@ function RNText:initWithText2(text, font, size, width, height, hAlignment, vAlig
     self.b = 255
     self.textbox:setStyle(self.style)
     self.textbox:setString(self.text)
+    
+    -- S.S. add text scaling
+    self.textbox:setTextSize(size*2)
+
     self.textbox:setRect(0, 0, width, height)
     self.textbox:setAlignment(hAlignment, vAlignment)
     self.prop = self.textbox
     self.size = size
 
-    self.textbox:setGlyphScale(0.75)
+    -- turn off glyph scaling
+    --self.textbox:setGlyphScale(0.75)
 
     self.stylesList = {}
 

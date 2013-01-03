@@ -50,7 +50,7 @@ end
 local collect = collectgarbage
 local lastCheck = { sysMem = 0 }
 function memestatus(say)
-    collect()
+    --collect()
     local sysMem = collect("count") * .001
     if say == true or lastCheck.sysMem ~= sysMem then
         lastCheck.sysMem = sysMem

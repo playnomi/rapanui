@@ -86,7 +86,7 @@ end
 
 
 
-function RNText:initWithText2(text, font, size, width, height, alignment)
+function RNText:initWithText2(text, font, size, width, height, hAlignment, vAlignment)
     self.charcodes = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890 .,:;!?()&/-'
     self.fontName = font
 
@@ -125,7 +125,12 @@ function RNText:initWithText2(text, font, size, width, height, alignment)
 
 
     self.textbox:setRect(0, 0, width, height)
-    self.textbox:setAlignment(alignment)
+    
+    if (vAlignment) then
+        self.textbox:setAlignment(hAlignment, vAlignment)
+    else
+        self.textbox:setAlignment(hAlignment)
+    end
 
     self:setTextColor(255, 255, 255)
 

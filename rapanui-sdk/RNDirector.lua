@@ -81,7 +81,7 @@ end
 local unloadScene = function(moduleName)
     if moduleName ~= "main" and type(package.loaded[moduleName]) == "table" then
         package.loaded[moduleName] = nil
-        MOAISim.forceGarbageCollection()
+        --MOAISim.forceGarbageCollection()
     end
 end
 
@@ -149,7 +149,7 @@ function RNDirector:popIn()
         DIRECTOR.onEndListener = nil
     end
 
-    MOAISim.forceGarbageCollection()
+    --MOAISim.forceGarbageCollection()
 end
 
 
@@ -202,7 +202,7 @@ function slideEnd()
         DIRECTOR.onEndListener:call({})
         DIRECTOR.onEndListener = nil
     end
-    MOAISim.forceGarbageCollection()
+    --MOAISim.forceGarbageCollection()
 end
 
 
@@ -306,7 +306,7 @@ function RNDirector:endFade()
         DIRECTOR.onEndListener:call({})
         DIRECTOR.onEndListener = nil
     end
-    MOAISim.forceGarbageCollection()
+    --MOAISim.forceGarbageCollection()
 end
 
 return RNDirector

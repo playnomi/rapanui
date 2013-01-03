@@ -50,8 +50,8 @@ end      --]]
 -- Lists
 --require("rapanui-samples/lists/rn-rnListView")
 --require("rapanui-samples/lists/rn-rnListView-multilist")
---require("rapanui-samples/lists/rn-rnPageSwipe")
-require("rapanui-samples/lists/rn-rnPageSwipe-multiswipe")
+require("rapanui-samples/lists/rn-rnPageSwipe")
+--require("rapanui-samples/lists/rn-rnPageSwipe-multiswipe")
 
 -- Menu
 --require("rapanui-samples/menu/rn-menu-director")

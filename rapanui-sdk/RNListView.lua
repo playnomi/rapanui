@@ -14,7 +14,11 @@
 
 RNListView = {}
 
-
+RNListView.MIN_VELOCITY = .01
+RNListView.MAX_TRACKING_TIME = 100
+RNListView.DECELERATION_FRICTION_FACTOR = .95
+RNListView.MIN_VELOCITY_FOR_DECELERATION = 1
+RNListView.ACCELERATION = 15
 
 local function fieldChangedListener(self, key, value)
 
@@ -115,6 +119,8 @@ function RNListView:init()
                     self:callRegisteredFunctions("beganTouch")
                     self.beganDelta = event.y - self.y
                     self.olddeltay = 0
+                    self.scrollStartTime = os.clock()
+                    self.startTimePosition = event
                     if self.needScroll == false then
                         self:removeTimer()
                     end
@@ -126,6 +132,18 @@ function RNListView:init()
                     if self.olddeltay == nil then self.olddeltay = 0 end
                     self.deltay = event.y - self.tmpY
                     if self.canScrollY == true then
+                    
+                        self.lastEventTime = os.clock()
+                        
+                       -- print("self.deltay" , self.deltay, self.lastEventTime)
+                        
+                        if (self.lastEventTime - self.scrollStartTime > RNListView.MAX_TRACKING_TIME) then
+                        
+                           self.scrollStartTime = self.lastEventTime 
+                           self.startTimePosition = event
+                        
+                        end
+
                         self.tmpY = event.y
                         self:callRegisteredFunctions("movedTouch")
                         self.scrolled = true
@@ -180,6 +198,33 @@ function RNListView:init()
             end
         end
         if event.phase == "ended" and self.isScrollingY == true then
+            
+
+            print("touch ended", self.deltay, self.lastEventTime)
+            
+            -- calculate the real velocity
+    -- var a = new PKPoint(this._contentOffset.x - this.startTimePosition.x, this._contentOffset.y - this.startTimePosition.y);
+    -- var b = (event.timeStamp - this.startTime) / PKScrollViewAcceleration;
+    -- this.decelerationVelocity = new PKPoint(a.x / b, a.y / b);
+    -- this.minDecelerationPoint = this.minPoint.copy();
+    -- this.maxDecelerationPoint = new PKPoint(0, 0);
+            
+        
+            local firstPoint = {}
+            firstPoint.x = event.x - self.startTimePosition.x
+            firstPoint.y = event.y - self.startTimePosition.y
+            local velocity = self.lastEventTime - self.scrollStartTime / RNListView.ACCELERATION
+            local decelarationVelocity = {}
+            decelarationVelocity.x = firstPoint.x / velocity
+            decelarationVelocity.y = firstPoint.y / velocity
+
+            print("velocity", velocity)
+            print("firstPoint", firstPoint.x, firstPoint.y)
+            print("decelarationVelocity.x", "decelarationVelocity.y", decelarationVelocity.x, decelarationVelocity.y)
+
+            -- this is for testing
+            --self.deltay = decelarationVelocity.y
+
             self:createTimer()
             self.isScrollingY = false
             self.isTouching = false
@@ -275,9 +320,16 @@ function RNListView:createTimer()
                         end
                     end
 
+                    -- move this up for max scrolling adjustment
+                    if self.deltay > self.options.maxScrollingForceY then self.deltay = self.options.maxScrollingForceY end
+                    if self.deltay < -self.options.maxScrollingForceY then self.deltay = -self.options.maxScrollingForceY end
+
+
                     if self.deltay > 0 and self.y < self.options.maxY + self.options.limit then
+                      --  print("scrolling down with intertia", self.deltay)
                         self.y = self.y + self.deltay
                     elseif self.deltay < 0 and self.y > self.options.minY - self.options.limit then
+                      --  print("scrolling up with intertia", self.deltay)
                         self.y = self.y + self.deltay
                     else
                         if self.needScroll == false then
@@ -302,11 +354,15 @@ function RNListView:createTimer()
                         end
                     end
 
-                    if self.deltay > 0 then self.deltay = self.deltay - 0.2 end
-                    if self.deltay < 0 then self.deltay = self.deltay + 0.2 end
+                   -- if self.deltay > 0 then self.deltay = self.deltay - 0.2 end
+                   -- if self.deltay < 0 then self.deltay = self.deltay + 0.2 end
+                    
+                    if self.deltay > 0 then self.deltay = self.deltay *.95 end
+                    if self.deltay < 0 then self.deltay = self.deltay *.95 end
+                    
 
-                    if self.deltay > self.options.maxScrollingForceY then self.deltay = self.options.maxScrollingForceY end
-                    if self.deltay < -self.options.maxScrollingForceY then self.deltay = -self.options.maxScrollingForceY end
+
+
                 end
             end
         end

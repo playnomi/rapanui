@@ -81,7 +81,7 @@ function RNGraphicsManager:deallocateGfx(path)
         object = nil
 
         --free memory and OpenGL
-        MOAISim.forceGarbageCollection()
+        -- MOAISim.forceGarbageCollection()
     end
 end
 
@@ -193,6 +193,41 @@ function RNGraphicsManager:allocateTileDeck2DGfx(path, sx, sy)
     return object.deck
 end
 
+-- S.S. add bitmap font
+function RNGraphicsManager:allocateBitmapFont(path, size)
+
+    local object = {}
+    object.path = path
+
+    object.font = MOAIFont.new()
+
+    if (path == "MariAndDavid") then
+
+        charcodes = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .,:;!?()&-'
+    else
+    
+        charcodes = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .,:;!?()/&-'
+   
+    end
+    
+    retinaSize  = size*2
+    bmPath      = path .. "-" .. tostring(retinaSize) .. ".fnt"
+
+    print("font path", bmPath)
+
+    object.font:loadFromBMFont(bmPath)
+    object.font:preloadGlyphs ( charcodes, retinaSize )
+
+    object.path = bmPath
+    object.sizes = size
+    object.isInAtlas = false
+
+    RNGraphicsManager.gfx[table.getn(RNGraphicsManager.gfx) + 1] = object
+
+    return object.font
+end
+
+
 function RNGraphicsManager:allocateFont(path)
     local object = {}
     object.path = path
@@ -227,6 +262,21 @@ function RNGraphicsManager:getDeckByPath(path)
         end
     end
     return d, n
+end
+
+-- S.S. updates for bitmap font
+function RNGraphicsManager:getBitmapFontByPath(path, size)
+    local d
+
+    retinaSize  = size*2
+    bmPath      = path .. "-" .. tostring(retinaSize) .. ".fnt"
+
+    for i, v in ipairs(RNGraphicsManager.gfx) do
+        if v.path == bmPath then
+            d = v.font
+        end
+    end
+    return d
 end
 
 function RNGraphicsManager:getFontByPath(path)
@@ -268,6 +318,30 @@ function RNGraphicsManager:getGfxByDeck(deck)
     end
     return d
 end
+
+
+function RNGraphicsManager:getAlreadyAllocatedBitmapFont(path, size)
+    local p = false
+    
+    retinaSize  = size*2
+    bmPath      = path .. "-" .. tostring(retinaSize) .. ".fnt"
+    
+    for i, v in ipairs(RNGraphicsManager.gfx) do
+        if v.path == bmPath then
+            p = true
+        end
+        --if it's in atlas
+        if v.names ~= nil then
+            for j, k in pairs(v.names) do
+                if j == bmPath then
+                    p = true
+                end
+            end
+        end
+    end
+    return p
+end
+
 
 function RNGraphicsManager:getAlreadyAllocated(path)
     local p = false
