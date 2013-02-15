@@ -70,6 +70,9 @@ function RNPageSwipe:init()
     self.touch = function(event)
         local self = self
         if self.canSwipe == true then
+        
+        print("can swipe", event.phase, event.x, event.y, self.options.touchAreaStartingX, self.options.touchAreaW)
+
             if event.x > self.options.touchAreaStartingX and event.x < self.options.touchAreaW + self.options.touchAreaStartingX and event.y > self.options.touchAreaStartingY and event.y < self.options.touchAreaH + self.options.touchAreaStartingY then
                 if event.phase == "began" then
                     self:callRegisteredFunctions("touchSwipeBegan")
@@ -82,6 +85,8 @@ function RNPageSwipe:init()
                     self.tempx = event.x
                     self.isMoving = true
                     --
+                    
+                    print("move location for swipe", event.x, event.y, self.forcex)
                     --move elements according to touch
                     for i, v in ipairs(self.elements) do
                         v.object.x = v.object.x + self.forcex
@@ -91,6 +96,9 @@ function RNPageSwipe:init()
                 end
 
                 if event.phase == "ended" then
+                
+                     print("end location for swipe", event.x, event.y, self.STARTINGX)
+
                     --check current page
                     if self.STARTINGX ~= nil then
                         if math.abs(self.STARTINGX - event.x) > self.options.touchLength then
@@ -115,9 +123,12 @@ function RNPageSwipe:init()
                 end
 
             else
+            
+            print("not in valid touch area", event.x, event.y, self.options.touchAreaStartingX, self.options.touchAreaW)
+
                 if event.phase == "ended" then
 
-
+                    print("swipe ended", event.x, event.y)
                     if self.isMoving == true then
                         --check current page
                         if self.STARTINGX ~= nil then

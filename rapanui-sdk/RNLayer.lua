@@ -32,6 +32,7 @@ function RNLayer:createLayer(name,viewport)
 	local index = table.getn(self) + 1
 	
 	if self:get(name) then
+        print("returning nil for layer")
 		return nil, RNLayer.LAYER_WITH_SAME_NAME_EXISTS
 	end
 

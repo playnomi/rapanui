@@ -37,6 +37,21 @@ local hudobject = RNFactory.createImageFrom("images/tile1.png", hudlayer)
 hudobject.x = 200
 hudobject.y = 300
 
+local hudobject = RNFactory.createImageFrom("images/tile1.png", hudlayer)
+hudobject.x = 200
+hudobject.y = 300
+
+local hudobject = RNFactory.createImageFrom("images/tile1.png", hudlayer)
+hudobject.x = 200
+hudobject.y = 350
+
+local hudobject = RNFactory.createImageFrom("images/tile1.png", hudlayer)
+hudobject.x = 200
+hudobject.y = 400
+
 --move camera. Hud image stays on the same place while the camera moves acros the 
 --background. Images on game/mainlayer stays where they where placed
-camera:seekLoc(100, 100, 5)
+--camera:seekLoc(100, 100, 5)
+
+hudlayer:seekLoc(100,100,.5)
+

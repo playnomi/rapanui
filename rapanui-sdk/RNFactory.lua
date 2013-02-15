@@ -483,15 +483,13 @@ function RNFactory.createButtonFrom(image, layer, params, putOnScreen)
 
     local parentGroup, left, top
 
-    local top, left, size, font, vAlignment, hAlignment
+    local top, left, size, font
 
     local xOffset, yOffset = 0, 0
 
     font =  "Helvetica"
     size = 14
 
-    vAlignment = MOAITextBox.CENTER_JUSTIFY
-    hAlignment = MOAITextBox.CENTER_JUSTIFY
 
     top = 0
     left = 0
@@ -538,13 +536,6 @@ function RNFactory.createButtonFrom(image, layer, params, putOnScreen)
       end
         ]] --
 
-        if (params.verticalAlignment ~= nil) then
-            vAlignment = params.verticalAlignment
-        end
-
-        if (params.horizontalAlignment ~= nil) then
-            hAlignment = params.horizontalAlignment
-        end
     end
 
     if (params.xOffset ~= nil) then
@@ -859,6 +850,8 @@ params.letterHeight
 end
 
 function RNFactory.createText(text, params)
+
+    local text = tostring(text)
     return RNFactory.createTextFrom(text, RNFactory.screen.layers:get(RNLayer.MAIN_LAYER), params)
 end
 
@@ -871,7 +864,7 @@ function RNFactory.createTextFrom(text, layer, params, putOnScreen)
         putOnScreen = true
     end
 
-    local top, left, size, font, height, width, alignment
+    local top, left, size, font, height, width, alignment, vAlignment, hAlignment
 
     font = "Helvetica"
     size = 14
@@ -909,14 +902,20 @@ function RNFactory.createTextFrom(text, layer, params, putOnScreen)
             hAlignment = params.alignment
         end
 
+        -- S.S. Adjustments for text alignment
         if (params.vAlignment ~= nil) then
             vAlignment = params.vAlignment
         end  
         
         if (params.hAlignment ~= nil) then
             hAlignment = params.hAlignment
-        end  
-        
+        end 
+
+        if hAlignment == nil then
+            hAlignment = alignment
+        end
+
+
     end
 
     local rntext = RNText:new()

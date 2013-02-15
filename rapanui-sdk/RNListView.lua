@@ -287,6 +287,7 @@ function RNListView:createTimer()
 
                     --autoscroll at limits / magnetic effect
                     if self.y > self.options.maxY and self.isTouching == false then
+
                         self.deltay = 0
                         local value = (self.y - self.options.maxY) / 20
                         self.y = self.y - value
@@ -295,6 +296,16 @@ function RNListView:createTimer()
                             self:removeTimer()
                             self.needScroll = false
                         end
+                        
+                        if (self.y - self.options.maxY > self.options.cellH/2) then
+
+                            -- trigger the callback here
+                            if self.options.callback ~= nil then
+                                self.options.callback("reload")
+                                self.canScrollY = false
+                            end
+                        end
+
                     end
                     if self.y < self.options.minY and self.isTouching == false then
                         self.deltay = 0

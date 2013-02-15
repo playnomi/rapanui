@@ -144,9 +144,6 @@ end
 
 function RNScreen:getObjectWithHighestLevelOn(x, y)
 
-
-
-
     local props
     if config.stretch.status == true then
         if config.stretch.letterbox == true then

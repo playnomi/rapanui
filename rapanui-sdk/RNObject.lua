@@ -1294,7 +1294,6 @@ function RNObject:remove()
 
     if self.stylesList ~= nil then
         for i = 1, #self.stylesList do
-            print(i)
             self.stylesList[i] = nil
         end
         self.styleList = nil

@@ -40,11 +40,14 @@ screen:removeFromLayer(image2, mainlayer)
 
 --this is the same for
 --TEXTS:
-local text1 = RNFactory.loadText("Hello world!", { size = 25, top = 5, left = 5, width = 200, height = 50 })
+local text1 = RNFactory.loadText("Hello world!", { 
+        font = "FloralessShadow",
+    size = 12, top = 5, left = 5, width = 200, height = 50 })
 screen:putOnLayer(text1)
 
 --BUTTONS:
 local button = RNFactory.loadButton("images/button-plain.png", {
+        font = "FloralessShadow",
     text = "Main Button 1",
     imageOver = "images/button-over.png",
     top = 50,
@@ -54,7 +57,6 @@ local button = RNFactory.loadButton("images/button-plain.png", {
     height = 50,
     onTouchDown = button1TouchDown,
     onTouchUp = button1UP,
-    font = "arial-rounded.TTF"
 })
 screen:putOnLayer(button)
 

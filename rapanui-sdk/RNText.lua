@@ -98,7 +98,7 @@ function RNText:initWithText2(text, font, size, width, height, hAlignment, vAlig
     if vAlignment == nil then
         vAlignment = hAlignment
     end
-
+    
     self.font = font
     self.text = text
     self.locatingMode = CENTERED_MODE

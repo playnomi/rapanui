@@ -337,6 +337,7 @@ function onEvent(eventType, idx, x, y, tapCount)
         local currenTarget = screen:getRNObjectWithHighestLevelOn(x, y);
         event:initWithEventType(eventType)
 
+        --print("touch event", x,y)
 
         local globallisteners = innerInputManager:getGlobalListenersToEvent("touch")
 
