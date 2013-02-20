@@ -51,6 +51,7 @@ function RNLayer:get(name)
             return container.layer
         end
     end
+    return nil
 end
 
 function RNLayer:createLayerWithPartition(name,viewport)

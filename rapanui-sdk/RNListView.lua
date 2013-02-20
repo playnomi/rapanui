@@ -133,6 +133,21 @@ function RNListView:init()
                     self.deltay = event.y - self.tmpY
                     if self.canScrollY == true then
                     
+                    
+                        if (self.y - self.options.maxY > 100) then
+                            -- trigger the callback here
+                            if self.options.callback ~= nil then
+                            
+                                --print(self.y, self.options.maxY)
+
+                                self.options.callback("change")
+                            end
+                        elseif (self.y - self.options.maxY > 2) then
+                            if self.options.callback ~= nil then
+                                self.options.callback("change_back")
+                            end
+                        end
+
                         self.lastEventTime = os.clock()
                         
                        -- print("self.deltay" , self.deltay, self.lastEventTime)
@@ -200,7 +215,7 @@ function RNListView:init()
         if event.phase == "ended" and self.isScrollingY == true then
             
 
-            print("touch ended", self.deltay, self.lastEventTime)
+            --print("touch ended", self.deltay, self.lastEventTime)
             
             -- calculate the real velocity
     -- var a = new PKPoint(this._contentOffset.x - this.startTimePosition.x, this._contentOffset.y - this.startTimePosition.y);
@@ -218,9 +233,9 @@ function RNListView:init()
             decelarationVelocity.x = firstPoint.x / velocity
             decelarationVelocity.y = firstPoint.y / velocity
 
-            print("velocity", velocity)
-            print("firstPoint", firstPoint.x, firstPoint.y)
-            print("decelarationVelocity.x", "decelarationVelocity.y", decelarationVelocity.x, decelarationVelocity.y)
+            --print("velocity", velocity)
+            --print("firstPoint", firstPoint.x, firstPoint.y)
+            --print("decelarationVelocity.x", "decelarationVelocity.y", decelarationVelocity.x, decelarationVelocity.y)
 
             -- this is for testing
             --self.deltay = decelarationVelocity.y
@@ -284,7 +299,6 @@ function RNListView:createTimer()
                         self:callRegisteredFunctions("step")
                     end
 
-
                     --autoscroll at limits / magnetic effect
                     if self.y > self.options.maxY and self.isTouching == false then
 
@@ -297,13 +311,24 @@ function RNListView:createTimer()
                             self.needScroll = false
                         end
                         
-                        if (self.y - self.options.maxY > self.options.cellH/2) then
+                                            
+
+                        if (self.y - self.options.maxY > self.options.cellH/1.5) then
 
                             -- trigger the callback here
                             if self.options.callback ~= nil then
                                 self.options.callback("reload")
                                 self.canScrollY = false
                             end
+                        else
+                        
+                            -- trigger the callback here
+                            if self.options.callback ~= nil then
+                                print(self.y, self.options.maxY)
+                               -- self.options.callback("change_back")
+                            end
+   
+                        
                         end
 
                     end

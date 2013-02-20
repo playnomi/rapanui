@@ -936,6 +936,13 @@ function RNFactory.createTextFrom(text, layer, params, putOnScreen)
     return rntext, gFont
 end
 
+function RNFactory.createRectFrom(x,y,width,height,params)
+
+    
+    
+
+end
+
 
 function RNFactory.createRect(x, y, width, height, params)
     local parentGroup, top, left
@@ -948,7 +955,16 @@ function RNFactory.createRect(x, y, width, height, params)
 
     local shape = RNObject:new()
     shape:initWithRect(width, height, rgb)
-    RNFactory.screen:addRNObject(shape)
+    
+    if (params) then
+    
+        print("create rect with params", params.layer )
+
+        RNFactory.screen:addRNObject(shape, nil, params.layer)
+    else
+        RNFactory.screen:addRNObject(shape)    
+    end
+    
     shape.x = shape.originalWidth * .5 + x
     shape.y = shape.originalHeight * .5 + y
     shape.rotation = 0

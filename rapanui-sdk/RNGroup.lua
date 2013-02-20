@@ -192,6 +192,9 @@ end
 
 
 function RNGroup:insert(object, resetTransform)
+
+
+
     if object:getType() == "RNTableElement" then
         for i, v in ipairs(object.elements) do
             self:insert(v.rnText)
