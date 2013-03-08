@@ -649,6 +649,7 @@ function RNFactory.createImageFromMoaiImage(moaiImage, params)
 
     top = 0
     left = 0
+    layer = nil
 
     if (params ~= nil) then
         if (params.top ~= nil) then
@@ -664,7 +665,13 @@ function RNFactory.createImageFromMoaiImage(moaiImage, params)
         else
             parentGroup = RNFactory.mainGroup
         end
+
+        if (params.layer) then
+            layer = params.layer
+        end
     end
+    
+
 
     if (parentGroup == nil) then
         parentGroup = RNFactory.mainGroup
@@ -673,7 +680,7 @@ function RNFactory.createImageFromMoaiImage(moaiImage, params)
 
     local image = RNObject:new()
     image:initWithMoaiImage(moaiImage)
-    RNFactory.screen:addRNObject(image)
+    RNFactory.screen:addRNObject(image, nil, layer)
     image.x = image.originalWidth / 2 + left
     image.y = image.originalHeight / 2 + top
 
@@ -856,10 +863,12 @@ function RNFactory.createText(text, params)
 end
 
 function RNFactory.loadText(text, params)
+    local text = tostring(text)
     return RNFactory.createTextFrom(text, RNFactory.screen.layers:get(RNLayer.MAIN_LAYER), params, false)
 end
 
 function RNFactory.createTextFrom(text, layer, params, putOnScreen)
+    local text = tostring(text)
     if putOnScreen == nil then
         putOnScreen = true
     end
@@ -876,10 +885,12 @@ function RNFactory.createTextFrom(text, layer, params, putOnScreen)
     if (params ~= nil) then
         if (params.top ~= nil) then
             top = params.top
+            top = math.floor(top)
         end
 
         if (params.left ~= nil) then
             left = params.left
+            left = math.floor(left)
         end
 
         if (params.font ~= nil) then

@@ -85,6 +85,7 @@ end
 
 
 function RNText:initWithText2(text, font, size, width, height, hAlignment, vAlignment)
+
     self.fontName = font
 
     if type(font) == "string" then
@@ -94,6 +95,24 @@ function RNText:initWithText2(text, font, size, width, height, hAlignment, vAlig
             font = RNGraphicsManager:allocateBitmapFont(font, size)
         end
     end
+
+
+   -- font = "Helvetica.TTF"
+   -- font = "HelveticaBold.TTF"
+   -- font = "HelveticaNeue.TTF"
+   -- font = "arial-rounded.TTF"
+
+--[[
+    self.fontName = font
+
+    if type(font) == "string" then
+        if RNGraphicsManager:getAlreadyAllocated(font) then
+            font = RNGraphicsManager:getFontByPath(font)
+        else
+            font = RNGraphicsManager:allocateFont(font)
+        end
+    end
+]]--
 
     if vAlignment == nil then
         vAlignment = hAlignment
@@ -189,6 +208,7 @@ end
 
 function RNText:setVisible(value)
     --NOTE: this is a workaround becouse MOAI's setVisible has a bug.
+    self.visible = value
 
     if value then
         self:setAlpha(1)

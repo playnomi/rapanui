@@ -17,6 +17,9 @@ RNMainThread = {}
 RNMainThread.rnThread = RNThread:new()
 
 function RNMainThread.addTimedAction(delay, func, iterations)
+
+    print("add timed action", delay, iterations)
+
     --local actionid = RNMainThread.rnThread:runFunction(delay, func, iterations)
     --return actionid
     local timerObject = RNTimer:new()

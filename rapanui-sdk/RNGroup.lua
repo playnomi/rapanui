@@ -224,6 +224,8 @@ function RNGroup:insert(object, resetTransform)
         self.numChildren = self.numChildren + 1
         self.displayObjects[self.numChildren] = object
         object:setIDInGroup(self.numChildren)
+
+        --print("inserted", self.numChildren)
     end
 
     if object.setScissorRect and self.scissorRect ~= nil then object:setScissorRect(self.scissorRect) end
@@ -308,6 +310,9 @@ function RNGroup:setFocus(value)
 end
 
 function RNGroup:remove()
+
+    print("start removal of group")
+
     for i = 1, #self.displayObjects do
         self.displayObjects[1]:remove()
     end
@@ -332,7 +337,7 @@ function RNGroup:setVisible(value)
         local anObject = self.displayObjects[i]
         if anObject ~= nil then
             if anObject.getType ~= nil then
-                if anObject:getType() ~= "RNButton" then
+                if anObject:getType() ~= "RNButton" and anObject:getType() ~= "RNListView" then
                     if anObject ~= nil and type(anObject.getProp) ~= "table" and anObject:getProp() ~= nil then
                         anObject:setVisible(value)
                     end

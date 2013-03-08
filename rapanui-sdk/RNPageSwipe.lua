@@ -212,6 +212,8 @@ function RNPageSwipe:doSwipe()
                 end
             })
         else
+            --print("swipe for i", i)
+
             trn:run(v.object, { type = "move", mode = self.options.mode, time = self.options.time, x = self.options.offsetX + self.options.cellW * (col - 1) + self.options.dividerX * (col - 1) + self.options.pageW * (page - 1) - self.options.pageW * (self.currentPage - 1) })
         end
         col = col + 1
@@ -501,6 +503,8 @@ function RNPageSwipe:remove()
     RNListeners:removeEventListener("touch", self.touchListener)
     for i, v in ipairs(self.elements) do
         if v.object ~= nil then
+        
+            print("remove object from page swipe", i)
             v.object:remove()
         end
     end

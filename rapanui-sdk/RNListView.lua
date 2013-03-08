@@ -37,7 +37,7 @@ local function fieldChangedListener(self, key, value)
         self:setAlpha(value)
     end
     if key ~= nil and key == "visible" then
-        self:setVisibility(value)
+        self:setVisible(value)
     end
 end
 
@@ -75,6 +75,7 @@ function RNListView:innerNew(o)
         deltay = 0,
         canScrollY = true,
         isScrollingY = false,
+        visible = true,
         --
         isChooseDone = false,
     }
@@ -106,165 +107,169 @@ function RNListView:init()
     self:organizeItems()
 
     self.touchEvent = function(event)
-        if event.realTouch == nil then
-            event.realTouch = true
-        end
-        local self = self
-        if self.canScrollY == true then
-            if event.x > self.options.touchStartX and event.x < self.options.touchStartX + self.options.touchW and
-                    event.y > self.options.touchStartY and event.y < self.options.touchStartY + self.options.touchH then
-                if event.phase == "began" and self ~= nil then
-                    self.tmpY = event.y
-                    self.isTouching = true
-                    self:callRegisteredFunctions("beganTouch")
-                    self.beganDelta = event.y - self.y
-                    self.olddeltay = 0
-                    self.scrollStartTime = os.clock()
-                    self.startTimePosition = event
-                    if self.needScroll == false then
-                        self:removeTimer()
-                    end
-                    self.deltay = 0
-                end
+    
+        if (self.visible) then
 
-
-                if event.phase == "moved" and self ~= nil then
-                    if self.olddeltay == nil then self.olddeltay = 0 end
-                    self.deltay = event.y - self.tmpY
-                    if self.canScrollY == true then
-                    
-                    
-                        if (self.y - self.options.maxY > 100) then
-                            -- trigger the callback here
-                            if self.options.callback ~= nil then
-                            
-                                --print(self.y, self.options.maxY)
-
-                                self.options.callback("change")
-                            end
-                        elseif (self.y - self.options.maxY > 2) then
-                            if self.options.callback ~= nil then
-                                self.options.callback("change_back")
-                            end
-                        end
-
-                        self.lastEventTime = os.clock()
-                        
-                       -- print("self.deltay" , self.deltay, self.lastEventTime)
-                        
-                        if (self.lastEventTime - self.scrollStartTime > RNListView.MAX_TRACKING_TIME) then
-                        
-                           self.scrollStartTime = self.lastEventTime 
-                           self.startTimePosition = event
-                        
-                        end
-
+            if event.realTouch == nil then
+                event.realTouch = true
+            end
+            local self = self
+            if self.canScrollY == true then
+                if event.x > self.options.touchStartX and event.x < self.options.touchStartX + self.options.touchW and
+                        event.y > self.options.touchStartY and event.y < self.options.touchStartY + self.options.touchH then
+                    if event.phase == "began" and self ~= nil then
                         self.tmpY = event.y
-                        self:callRegisteredFunctions("movedTouch")
-                        self.scrolled = true
-                        if (self.deltay > 0 and self.y < self.options.maxY + self.options.limit) then
-                            if self.olddeltay > 0 then
-                                if self.beganDelta ~= nil then
-                                    self.y = event.y - self.beganDelta
+                        self.isTouching = true
+                        self:callRegisteredFunctions("beganTouch")
+                        self.beganDelta = event.y - self.y
+                        self.olddeltay = 0
+                        self.scrollStartTime = os.clock()
+                        self.startTimePosition = event
+                        if self.needScroll == false then
+                            self:removeTimer()
+                        end
+                        self.deltay = 0
+                    end
+
+
+                    if event.phase == "moved" and self ~= nil then
+                        if self.olddeltay == nil then self.olddeltay = 0 end
+                        self.deltay = event.y - self.tmpY
+                        if self.canScrollY == true then
+                        
+                        
+                            if (self.y - self.options.maxY > 100) then
+                                -- trigger the callback here
+                                if self.options.callback ~= nil then
+                                
+                                    --print(self.y, self.options.maxY)
+
+                                    self.options.callback("change")
                                 end
-                            else
-                                self.beganDelta = event.y - self.y
+                            elseif (self.y - self.options.maxY > 2) then
+                                if self.options.callback ~= nil then
+                                    self.options.callback("change_back")
+                                end
+                            end
+
+                            self.lastEventTime = os.clock()
+                            
+                           -- print("self.deltay" , self.deltay, self.lastEventTime)
+                            
+                            if (self.lastEventTime - self.scrollStartTime > RNListView.MAX_TRACKING_TIME) then
+                            
+                               self.scrollStartTime = self.lastEventTime 
+                               self.startTimePosition = event
+                            
+                            end
+
+                            self.tmpY = event.y
+                            self:callRegisteredFunctions("movedTouch")
+                            self.scrolled = true
+                            if (self.deltay > 0 and self.y < self.options.maxY + self.options.limit) then
+                                if self.olddeltay > 0 then
+                                    if self.beganDelta ~= nil then
+                                        self.y = event.y - self.beganDelta
+                                    end
+                                else
+                                    self.beganDelta = event.y - self.y
+                                end
+                            end
+                            if (self.deltay < 0 and self.y > self.options.minY - self.options.limit) then
+                                if self.olddeltay < 0 then
+                                    if self.beganDelta ~= nil then
+                                        self.y = event.y - self.beganDelta
+                                    end
+                                else
+                                    self.beganDelta = event.y - self.y
+                                end
                             end
                         end
-                        if (self.deltay < 0 and self.y > self.options.minY - self.options.limit) then
-                            if self.olddeltay < 0 then
-                                if self.beganDelta ~= nil then
-                                    self.y = event.y - self.beganDelta
-                                end
-                            else
-                                self.beganDelta = event.y - self.y
-                            end
+                        self.olddeltay = self.deltay
+
+
+                        --
+
+                        if event.y > self.options.touchStartY then
                         end
                     end
-                    self.olddeltay = self.deltay
 
-
-                    --
-
-                    if event.y > self.options.touchStartY then
+                    if event.phase == "ended" and self ~= nil and self.isScrollingY == false and self.isChooseDone == false then
+                        if self ~= nil then
+                            self:createTimer()
+                        end
+                        if event.realTouch == true then
+                            for i = 1, table.getn(self.elements), 1 do
+                                if event.x > self.x and event.x < self.x + self.options.cellW and event.y > self.y + i * self.options.cellH - self.options.cellH and event.y < self.y + i * self.options.cellH + self.options.cellH - self.options.cellH then
+                                    if self.elements[i].onClick ~= nil and self.scrolled == false then
+                                        local funct = self.elements[i].onClick
+                                        funct({ target = self.elements[i] }, event)
+                                    end
+                                end
+                            end
+                        end
+                        if self ~= nil then
+                            self:callRegisteredFunctions("endedTouch")
+                        end
+                        self.isTouching = false
+                        self.scrolled = false
                     end
                 end
+            end
+            if event.phase == "ended" and self.isScrollingY == true then
+                
 
-                if event.phase == "ended" and self ~= nil and self.isScrollingY == false and self.isChooseDone == false then
-                    if self ~= nil then
-                        self:createTimer()
-                    end
-                    if event.realTouch == true then
-                        for i = 1, table.getn(self.elements), 1 do
-                            if event.x > self.x and event.x < self.x + self.options.cellW and event.y > self.y + i * self.options.cellH - self.options.cellH and event.y < self.y + i * self.options.cellH + self.options.cellH - self.options.cellH then
-                                if self.elements[i].onClick ~= nil and self.scrolled == false then
-                                    local funct = self.elements[i].onClick
-                                    funct({ target = self.elements[i] }, event)
-                                end
-                            end
-                        end
-                    end
-                    if self ~= nil then
-                        self:callRegisteredFunctions("endedTouch")
-                    end
-                    self.isTouching = false
-                    self.scrolled = false
+                --print("touch ended", self.deltay, self.lastEventTime)
+                
+                -- calculate the real velocity
+        -- var a = new PKPoint(this._contentOffset.x - this.startTimePosition.x, this._contentOffset.y - this.startTimePosition.y);
+        -- var b = (event.timeStamp - this.startTime) / PKScrollViewAcceleration;
+        -- this.decelerationVelocity = new PKPoint(a.x / b, a.y / b);
+        -- this.minDecelerationPoint = this.minPoint.copy();
+        -- this.maxDecelerationPoint = new PKPoint(0, 0);
+                
+            
+                local firstPoint = {}
+                firstPoint.x = event.x - self.startTimePosition.x
+                firstPoint.y = event.y - self.startTimePosition.y
+                local velocity = self.lastEventTime - self.scrollStartTime / RNListView.ACCELERATION
+                local decelarationVelocity = {}
+                decelarationVelocity.x = firstPoint.x / velocity
+                decelarationVelocity.y = firstPoint.y / velocity
+
+                --print("velocity", velocity)
+                --print("firstPoint", firstPoint.x, firstPoint.y)
+                --print("decelarationVelocity.x", "decelarationVelocity.y", decelarationVelocity.x, decelarationVelocity.y)
+
+                -- this is for testing
+                --self.deltay = decelarationVelocity.y
+
+                self:createTimer()
+                self.isScrollingY = false
+                self.isTouching = false
+                self:callRegisteredFunctions("cancelledTouch")
+                self.scrolled = false
+            end
+            if event.phase == "moved" then
+                if event.y < self.options.touchStartY then
+                    local _nEv = {}
+                    _nEv.y = self.options.touchStartY + 10
+                    _nEv.x = event.x
+                    _nEv.phase = "ended"
+                    _nEv.realTouch = false
+                    self.touchEvent(_nEv)
+                    self:callRegisteredFunctions("cancelledTouch")
+                elseif event.y > self.options.touchStartY + self.options.touchH - 10 then
+                    local _nEv = {}
+                    _nEv.y = self.options.touchStartY + self.options.touchH - 10
+                    _nEv.x = event.x
+                    _nEv.phase = "ended"
+                    _nEv.realTouch = false
+                    self.touchEvent(_nEv)
+                    self:callRegisteredFunctions("cancelledTouch")
                 end
             end
-        end
-        if event.phase == "ended" and self.isScrollingY == true then
-            
-
-            --print("touch ended", self.deltay, self.lastEventTime)
-            
-            -- calculate the real velocity
-    -- var a = new PKPoint(this._contentOffset.x - this.startTimePosition.x, this._contentOffset.y - this.startTimePosition.y);
-    -- var b = (event.timeStamp - this.startTime) / PKScrollViewAcceleration;
-    -- this.decelerationVelocity = new PKPoint(a.x / b, a.y / b);
-    -- this.minDecelerationPoint = this.minPoint.copy();
-    -- this.maxDecelerationPoint = new PKPoint(0, 0);
-            
-        
-            local firstPoint = {}
-            firstPoint.x = event.x - self.startTimePosition.x
-            firstPoint.y = event.y - self.startTimePosition.y
-            local velocity = self.lastEventTime - self.scrollStartTime / RNListView.ACCELERATION
-            local decelarationVelocity = {}
-            decelarationVelocity.x = firstPoint.x / velocity
-            decelarationVelocity.y = firstPoint.y / velocity
-
-            --print("velocity", velocity)
-            --print("firstPoint", firstPoint.x, firstPoint.y)
-            --print("decelarationVelocity.x", "decelarationVelocity.y", decelarationVelocity.x, decelarationVelocity.y)
-
-            -- this is for testing
-            --self.deltay = decelarationVelocity.y
-
-            self:createTimer()
-            self.isScrollingY = false
-            self.isTouching = false
-            self:callRegisteredFunctions("cancelledTouch")
-            self.scrolled = false
-        end
-        if event.phase == "moved" then
-            if event.y < self.options.touchStartY then
-                local _nEv = {}
-                _nEv.y = self.options.touchStartY + 10
-                _nEv.x = event.x
-                _nEv.phase = "ended"
-                _nEv.realTouch = false
-                self.touchEvent(_nEv)
-                self:callRegisteredFunctions("cancelledTouch")
-            elseif event.y > self.options.touchStartY + self.options.touchH - 10 then
-                local _nEv = {}
-                _nEv.y = self.options.touchStartY + self.options.touchH - 10
-                _nEv.x = event.x
-                _nEv.phase = "ended"
-                _nEv.realTouch = false
-                self.touchEvent(_nEv)
-                self:callRegisteredFunctions("cancelledTouch")
-            end
-        end
+        end -- self.visible
     end
 
 
@@ -324,7 +329,7 @@ function RNListView:createTimer()
                         
                             -- trigger the callback here
                             if self.options.callback ~= nil then
-                                print(self.y, self.options.maxY)
+                               -- print(self.y, self.options.maxY)
                                -- self.options.callback("change_back")
                             end
    
@@ -573,11 +578,13 @@ function RNListView:setAlpha(value)
     end
 end
 
+--[[
 function RNListView:setVisibility(value)
     for i, v in ipairs(self.elements) do
         v.object.visible = value
     end
 end
+]]--
 
 function RNListView:setScissorRect(scissorRect)
     self.scissorRect = scissorRect
@@ -609,8 +616,24 @@ function RNListView:setIDInGroup()
     --mocked for group adding see RNGroup
 end
 
-function RNListView:setLevel()
+function RNListView:setLevel(level)
     --mocked for group adding see RNGroup
+    for i, v in ipairs(self.elements) do
+        if v.object ~= nil then
+            v.object:setLevel(level)
+        end
+    end   
+end
+
+function RNListView:setVisible(value)
+    self.visible = value
+
+    --mocked for group adding see RNGroup
+    for i, v in ipairs(self.elements) do
+        if v.object ~= nil then
+            v.object:setVisible(value)
+        end
+    end   
 end
 
 function RNListView:setParentGroup()

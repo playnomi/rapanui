@@ -161,7 +161,7 @@ function RNScreen:getObjectWithHighestLevelOn(x, y)
     for i = 1, #props do
         local currentProp = props[i]
         if (currentProp.RNObject ~=  nil) then
-            if currentProp.RNObject.touchable == true then
+            if currentProp.RNObject.touchable == true and currentProp.RNObject.visible == true then
                 return currentProp.RNObject
             end
         end

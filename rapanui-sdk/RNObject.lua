@@ -1031,6 +1031,8 @@ function RNObject:getLocatingMode()
 end
 
 function RNObject:setVisible(value)
+
+    self.visible = value
     if self.isPhysical == false then
         if self.prop ~= nil then
             --print(self,self.prop,typeof(value))
@@ -1049,6 +1051,7 @@ function RNObject:setVisible(value)
 end
 
 function RNObject:getVisible()
+     
     return self.visible
 end
 
@@ -1155,7 +1158,7 @@ function RNObject:isInRange(x, y)
     buttonx = x + self.originalWidth / 2
     buttony = y + self.originalHeight / 2
 
-    if self.visible
+    if self:getVisible()
             and buttonx >= self.x
             and buttonx <= self.x + self.originalWidth
             and buttony >= self.y
@@ -1174,29 +1177,31 @@ end
 
 function RNObject:onEvent(event)
 
-    if event.phase == "began" and self.visible and self.onTouchDownListener ~= nil then
+    --print("self.visible", self.visible)
+
+    if event.phase == "began" and self:getVisible() and self.onTouchDownListener ~= nil then
         self.onTouchDownListener(event)
         return true
     end
 
-    if event.phase == "moved" and self.visible and self.onTouchMoveListener ~= nil then
+    if event.phase == "moved" and self:getVisible() and self.onTouchMoveListener ~= nil then
         self.onTouchMoveListener(event)
         return true
     end
 
-    if event.phase == "ended" and self.visible and self.onTouchUpListener ~= nil then
+    if event.phase == "ended" and self:getVisible() and self.onTouchUpListener ~= nil then
         self.onTouchUpListener(event)
         return true
     end
 
-    if event.phase == "cancelled" and self.visible and self.onTouchUpListener ~= nil then
+    if event.phase == "cancelled" and self:getVisible() and self.onTouchUpListener ~= nil then
         self.onTouchUpListener(event)
         return true
     end
 end
 
 function RNObject:onTouchMove(x, y, source)
-    if self.visible and self.touchListener ~= nil and x >= self.x and x <= self.x + self.originalWidth and y >= self.y and y <= self.y + self.originalHeight then
+    if self:getVisible() and self.touchListener ~= nil and x >= self.x and x <= self.x + self.originalWidth and y >= self.y and y <= self.y + self.originalHeight then
         self.onTouchMoveListener(x, y, source)
         return true
     end
@@ -1277,7 +1282,7 @@ function RNObject:remove()
     else
         self.prop:setDeck(nil)
     end
-    --print("remove", self.idInGroup)
+
     if (self.parentGroup) then
         self.parentGroup:removeChild(self.idInGroup)
     end

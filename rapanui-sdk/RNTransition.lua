@@ -171,7 +171,7 @@ function RNTransition:run(target, params)
 
     if (type == RNTransition.ROTATE) then
         if target:getType() == "RNObject" then
-            action = target:getProp():moveRot(angle, time)
+            action = target:getProp():moveRot(angle, time, mode)
         elseif target:getType() == "RNText" then
             -- action = target:getProp():moveRot(angle, angle, 0, time)
             action = target:getProp():moveRot(0, 0, angle, time)
