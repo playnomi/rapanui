@@ -74,6 +74,8 @@ if (true) then
     if screenX ~= nil then --if physical screen
         lwidth, lheight, screenlwidth, screenHeight = screenX, screenY, screenX, screenY
     else
+    
+        printError("we should not be setting size according to config")
         lwidth, lheight, screenlwidth, screenHeight = config.sizes[config.device][1], config.sizes[config.device][2], config.sizes[config.device][3], config.sizes[config.device][4]
     end
 

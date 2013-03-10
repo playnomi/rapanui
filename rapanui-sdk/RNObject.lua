@@ -737,7 +737,7 @@ function RNObject:animate(keyframe, executed, value)
         if executed >= rightSequence.repeatTimes then
             --print("stopped")
             --stop and deallocate timer
-            self.timer:stop()
+            --self.timer:stop()
             self.timer = nil
             --get right sequence from list
             local rightSequence = self.sequenceList[rightSequenceToPlay]
@@ -753,17 +753,20 @@ end
 
 function RNObject:stop()
     --stops timer
-    if self.timer ~= nil then self.timer:stop(); self.timer = nil end
+    if self.timer ~= nil then 
+        --self.timer:stop(); 
+        self.timer = nil 
+    end
 end
 
 function RNObject:togglePause()
     if self.isAnim == true and self.timer ~= nil then
         if self.pause == true then
             self.pause = false
-            self.timer:start()
+           -- self.timer:start()
         else
             self.pause = true
-            self.timer:stop()
+          --  self.timer:stop()
         end
     end
 end
@@ -1268,7 +1271,7 @@ end
 --
 function RNObject:remove()
 
-    if self.timer ~= nil then self.timer:stop(); self.timer = nil end
+    --if self.timer ~= nil then self.timer:stop(); self.timer = nil end
     if self.curve ~= nil then self.curve = nil end
 
     if self.tmplistener ~= nil then RNListeners:removeEventListener("enterFrame", self.tmplistener) end
