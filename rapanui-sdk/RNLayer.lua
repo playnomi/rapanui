@@ -39,6 +39,8 @@ function RNLayer:createLayer(name,viewport)
     self[index] = {} 
     self[index].layer = layer
     self[index].name = name
+    
+    
     layer:setViewport(viewport)
     MOAISim.pushRenderPass(layer)
 

@@ -229,6 +229,15 @@ function RNText:getType()
     return "RNText"
 end
 
+function RNText:setColor(color)
+
+    self.r = color[1]
+    self.g = color[2]
+    self.b = color[3]
+
+    self.textbox:getStyle():setColor(color[1] / 255, color[2] / 255, color[3] / 255)  
+
+end
 
 function RNText:setTextColor(r, g, b)
 
