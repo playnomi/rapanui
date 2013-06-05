@@ -86,8 +86,6 @@ end
 
 function RNText:initWithText2(text, font, size, width, height, hAlignment, vAlignment)
 
-    self.fontName = font
-
     if type(font) == "string" then
         if RNGraphicsManager:getAlreadyAllocatedBitmapFont(font, size) then
             font = RNGraphicsManager:getBitmapFontByPath(font, size)
@@ -97,12 +95,12 @@ function RNText:initWithText2(text, font, size, width, height, hAlignment, vAlig
     end
 
 
-   -- font = "Helvetica.TTF"
+   -- font = "Impregnable.TTF"
    -- font = "HelveticaBold.TTF"
    -- font = "HelveticaNeue.TTF"
    -- font = "arial-rounded.TTF"
 
---[[
+    --[[
     self.fontName = font
 
     if type(font) == "string" then
@@ -112,8 +110,10 @@ function RNText:initWithText2(text, font, size, width, height, hAlignment, vAlig
             font = RNGraphicsManager:allocateFont(font)
         end
     end
-]]--
+     ]]--
 
+    self.fontName = font
+    
     if vAlignment == nil then
         vAlignment = hAlignment
     end
@@ -184,7 +184,7 @@ function RNText:addStyle(name, font, size, color)
 end
 
 function RNText:setTextSize(value)
-    self.style:setSize(value)
+    self.style:setSize(value*2)
 end
 
 function RNText:setSize(width, height)

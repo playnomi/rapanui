@@ -943,8 +943,15 @@ function RNFactory.createTextFrom(text, layer, params, putOnScreen)
 
     RNFactory.mainGroup:insert(rntext)
 
-    rntext.x = left
-    rntext.y = top
+
+    if (params.x) then
+        --rntext:getProp():setPiv(params.x, params.y)
+        rntext.x = params.x
+        rntext.y = params.y
+    else
+        rntext.x = left
+        rntext.y = top
+    end
 
     return rntext, gFont
 end

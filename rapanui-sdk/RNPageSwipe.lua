@@ -86,7 +86,7 @@ function RNPageSwipe:init()
                     self.isMoving = true
                     --
                     
-                    print("move location for swipe", event.x, event.y, self.forcex)
+                    --print("move location for swipe", event.x, event.y, self.forcex)
                     --move elements according to touch
                     for i, v in ipairs(self.elements) do
                         v.object.x = v.object.x + self.forcex
@@ -504,7 +504,7 @@ function RNPageSwipe:remove()
     for i, v in ipairs(self.elements) do
         if v.object ~= nil then
         
-            print("remove object from page swipe", i)
+            --print("remove object from page swipe", i)
             v.object:remove()
         end
     end

@@ -156,6 +156,12 @@ function RNListView:init()
                             
                            -- print("self.deltay" , self.deltay, self.lastEventTime)
                             
+                            if (self.scrollStartTime == nil) then
+                            
+                                self.scrollStartTime = 0
+                            
+                            end
+
                             if (self.lastEventTime - self.scrollStartTime > RNListView.MAX_TRACKING_TIME) then
                             
                                self.scrollStartTime = self.lastEventTime 
@@ -228,7 +234,7 @@ function RNListView:init()
         -- this.minDecelerationPoint = this.minPoint.copy();
         -- this.maxDecelerationPoint = new PKPoint(0, 0);
                 
-            
+            --[[
                 local firstPoint = {}
                 firstPoint.x = event.x - self.startTimePosition.x
                 firstPoint.y = event.y - self.startTimePosition.y
@@ -243,7 +249,7 @@ function RNListView:init()
 
                 -- this is for testing
                 --self.deltay = decelarationVelocity.y
-
+            ]]--
                 self:createTimer()
                 self.isScrollingY = false
                 self.isTouching = false

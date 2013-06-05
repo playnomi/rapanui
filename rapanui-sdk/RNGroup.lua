@@ -311,7 +311,7 @@ end
 
 function RNGroup:remove()
 
-    print("start removal of group")
+    --print("start removal of group")
 
     for i = 1, #self.displayObjects do
         self.displayObjects[1]:remove()
