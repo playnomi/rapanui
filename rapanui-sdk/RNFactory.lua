@@ -695,6 +695,40 @@ function RNFactory.createImageFromMoaiImage(moaiImage, params)
 end
 
 
+function RNFactory.createImageFromMoaiSlotsImage(moaiImage, params)
+    
+    local parentGroup, left, top
+    
+    top = 0
+    left = 0
+    layer = nil
+    
+    if (params ~= nil) then        
+        if (params.layer) then
+            layer = params.layer
+        end
+    end
+    
+    if (parentGroup == nil) then
+        parentGroup = RNFactory.mainGroup
+    end
+    
+    
+    local image = RNObject:new()
+    image:initWithMoaiSlotsImage(moaiImage)
+    RNFactory.screen:addRNObject(image, nil, layer)
+    image.x = image.originalWidth / 2 + left
+    image.y = image.originalHeight / 2 + top
+    
+    if parentGroup ~= nil then
+        parentGroup:insert(image)
+    end
+    
+    
+    return image
+end
+
+
 
 function RNFactory.createMoaiImage(filename)
     local image = MOAIImage.new()

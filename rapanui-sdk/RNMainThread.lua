@@ -39,7 +39,10 @@ end
 function RNMainThread.removeAction(actionid)
   --RNMainThread.rnThread:removeAction(actionid)    
 
-    actionid:remove()
+    if (actionid) then
+        actionid:remove()
+        actionid = nil
+    end
 end
 
 function RNMainThread.getMainThread()

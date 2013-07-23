@@ -42,10 +42,33 @@ function RNLayer:createLayer(name,viewport)
     
     
     layer:setViewport(viewport)
+    
+    print("RNFactory.screen.mainPartition", RNFactory.screen.mainPartition)
+    if RNFactory.screen.mainPartition then
+    
+        --layer:setPartition(RNFactory.screen.mainPartition)
+    
+    end
+    
     MOAISim.pushRenderPass(layer)
 
     return layer
 end
+
+-- gets the layer or creates it if it does not exist
+function RNLayer:getLayer(name)
+    for i,container in pairs(self) do
+        if container.name == name then
+            return container.layer
+        end
+    end
+    
+    -- create the layer if it does not exist
+    return self:createLayer(name, RNFactory.screen.viewport)
+    
+end
+
+
 
 function RNLayer:get(name)
     for i,container in pairs(self) do

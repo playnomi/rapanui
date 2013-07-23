@@ -225,7 +225,7 @@ function RNGroup:insert(object, resetTransform)
         self.displayObjects[self.numChildren] = object
         object:setIDInGroup(self.numChildren)
 
-        --print("inserted", self.numChildren)
+       -- print("inserted", self.numChildren)
     end
 
     if object.setScissorRect and self.scissorRect ~= nil then object:setScissorRect(self.scissorRect) end
@@ -247,6 +247,8 @@ function RNGroup:removeChild(id)
     for i, v in ipairs(self.displayObjects) do v.idInGroup = i end
     --
     self.numChildren = table.getn(self.displayObjects)
+
+   -- print("RNGroup:removeChild", id, self.numChildren)
 end
 
 function RNGroup:inserLevel(level)

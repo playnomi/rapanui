@@ -474,6 +474,41 @@ function RNObject:loadCopyRect(src, params)
 end
 
 
+function RNObject:initWithMoaiSlotsImage(moaiImage)
+
+    self.visible = true
+    self.childrenSize = 0
+    
+    self.alpha = 1
+    self.name = ""
+    
+    self.gfxQuad = MOAIGfxQuad2D.new()
+    
+    self.image = moaiImage
+    
+    self.originalWidth, self.originalHeight = self.image:getSize()
+    
+    self.image = self.image:padToPow2()
+    self.gfxQuad:setTexture(self.image)
+    
+    self.pow2Width, self.pow2Height = self.image:getSize()
+    
+    --self.prop = MOAIProp2D.new()
+    
+    local u = self.originalWidth / self.pow2Width
+    local v = self.originalHeight / self.pow2Height
+    
+    --self.gfxQuad:setUVRect(0, 0, u, v)
+    
+    
+   -- self.prop:setDeck(self.gfxQuad)
+   -- self.gfxQuad:setRect(-self.originalWidth / 2, -self.originalHeight / 2, (self.originalWidth) / 2, (self.originalHeight) / 2)
+    --self.prop:setPriority(1)
+    
+    
+end
+
+
 
 
 function RNObject:initWithMoaiImage(moaiImage)
