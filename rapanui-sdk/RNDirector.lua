@@ -140,6 +140,10 @@ function RNDirector:popIn()
 
     if NEXT_SCENE ~= nil then
         CURRENT_SCENE_GROUP = NEXT_SCENE.onCreate()
+        --PAUL>>
+        print("REMOVE ALL ASSETS FROM GfxARRAY")
+        RNGraphicsManager:deallocateAllGfxAssets()
+        --<<PAUL
         CURRENT_SCENE = NEXT_SCENE
     end
 
@@ -171,6 +175,10 @@ function RNDirector:slideout(xx, yy)
     if NEXT_SCENE ~= nil then
         -- change the current scene group
         NEXT_SCENE_GROUP = NEXT_SCENE.onCreate()
+        --PAUL>>
+        print("REMOVE ALL ASSETS FROM GfxARRAY")
+        RNGraphicsManager:deallocateAllGfxAssets()
+        --<<PAUL
         NEXT_SCENE_GROUP.x = xx
         NEXT_SCENE_GROUP.y = yy
         --start slide
@@ -223,6 +231,10 @@ function RNDirector:crossFade()
     if NEXT_SCENE ~= nil then
 
         NEXT_SCENE_GROUP = NEXT_SCENE.onCreate()
+        --PAUL>>
+        print("REMOVE ALL ASSETS FROM GfxARRAY")
+        RNGraphicsManager:deallocateAllGfxAssets()
+        --<<PAUL
 
         for i = 1, table.getn(NEXT_SCENE_GROUP.displayObjects), 1 do
             NEXT_SCENE_GROUP.displayObjects[i]:setAlpha(0)
@@ -276,6 +288,10 @@ end
 function RNDirector:startFadeInNext()
 
     NEXT_SCENE_GROUP = NEXT_SCENE.onCreate()
+    --PAUL>>
+    print("REMOVE ALL ASSETS FROM GfxARRAY")
+    RNGraphicsManager:deallocateAllGfxAssets()
+    --<<PAUL
 
     for i = 1, table.getn(NEXT_SCENE_GROUP.displayObjects), 1 do
         NEXT_SCENE_GROUP.displayObjects[i]:setAlpha(0)

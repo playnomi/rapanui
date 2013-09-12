@@ -85,6 +85,27 @@ function RNGraphicsManager:deallocateGfx(path)
     end
 end
 
+
+--PAUL>>
+function RNGraphicsManager:deallocateAllGfxAssets()
+    for i, v in ipairs(self.gfx) do
+        if v ~= nil then
+            local object = self.gfx[i]
+            for y = i, #self.gfx - 1 do
+                self.gfx[y] = self.gfx[y + 1]
+            end
+            self.gfx[#self.gfx] = nil
+            object.deck = nil
+            object = nil
+            print("one object was deallocated")
+            --free memory and OpenGL
+        end
+    end
+    MOAISim.forceGarbageCollection()
+end
+--<<PAUL
+
+
 function RNGraphicsManager:loadAtlas(lua, png)
     local frames = dofile(lua).frames
 
