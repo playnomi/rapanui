@@ -218,7 +218,6 @@ function RNGroup:insert(object, resetTransform)
 
         object:setLevel(level)
 
-
         self.levels[level] = level
 
         self.numChildren = self.numChildren + 1
@@ -266,13 +265,40 @@ function RNGroup:getLowestLevel()
 end
 
 function RNGroup:getHighestLevel()
+
+    --local t = -1
+    --for i, v in pairs(self.levels) do
+    --    if t < v then
+    --        t = v
+    --    end
+    --end
+
+   --local objects = self:getAllChildren()
+
     local t = -1
-    for i, v in pairs(self.levels) do
-        if t < v then
-            t = v
+    if (self.displayObjects) then
+    
+        for i, item in ipairs(self.displayObjects) do
+
+            if (item.getHighestLevel) then
+
+                local level = item:getHighestLevel()
+                    --print("level", level)
+                    
+                if (t < level) then
+                    t = level
+                end
+
+            else
+                --print("no level")
+            end
         end
+
     end
+    
     return t
+        
+ 
 end
 
 function RNGroup:sendToBottom(object)

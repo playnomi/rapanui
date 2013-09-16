@@ -936,6 +936,10 @@ function RNObject:setLevel(value)
     self.parentGroup:inserLevel(self:getLevel())
 end
 
+function RNObject:getHighestLevel()
+    return self.prop:getPriority()
+end
+
 function RNObject:getLevel()
     return self.prop:getPriority()
 end

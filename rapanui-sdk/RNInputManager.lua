@@ -155,7 +155,10 @@ function RNInputManager:innerRemoveGlobalListenerToEvent(eventName, id)
     if globallisteners ~= nil then
         local globallistenrsSize = self.globaleventsSize[eventName]
         local aListener = globallisteners[id - 1]
+
+        if (aListener) then
         aListener:scheduleForRemoval()
+        end
     end
 end
 

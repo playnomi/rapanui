@@ -112,18 +112,24 @@ if (true) then
         local gameAspect = TARGET_WIDTH / TARGET_HEIGHT
         local realAspect = DEVICE_WIDTH / DEVICE_HEIGHT
 
+
+        print("TARGET_WIDTH", TARGET_WIDTH, "TARGET_WIDTH", TARGET_WIDTH)
+        print("DEVICE_WIDTH", DEVICE_WIDTH, "DEVICE_HEIGHT", DEVICE_HEIGHT)
         if realAspect > gameAspect then
 
+            print("realAspect > gameAspect", realAspect)
             SCREEN_UNITS_Y = TARGET_HEIGHT
             SCREEN_UNITS_X = TARGET_HEIGHT * realAspect
 
         elseif realAspect < gameAspect then
     
+            print("realAspect < gameAspect", realAspect)
             SCREEN_UNITS_X = TARGET_WIDTH 
             SCREEN_UNITS_Y = TARGET_WIDTH / realAspect
 
         else
 
+            print("realAspect = gameAspect")
             SCREEN_UNITS_X = TARGET_WIDTH 
             SCREEN_UNITS_Y = TARGET_HEIGHT	
 
@@ -992,8 +998,7 @@ end
 
 function RNFactory.createRectFrom(x,y,width,height,params)
 
-    
-    
+    return RNFactory.createRect(x,y,width,height,params)
 
 end
 
