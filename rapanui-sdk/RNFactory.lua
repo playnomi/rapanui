@@ -1017,7 +1017,7 @@ function RNFactory.createRect(x, y, width, height, params)
     
     if (params) then
     
-        print("create rect with params", params.layer )
+        --print("create rect with params", params.layer )
 
         RNFactory.screen:addRNObject(shape, nil, params.layer)
     else
