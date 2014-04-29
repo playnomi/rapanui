@@ -113,7 +113,7 @@ if (true) then
         local realAspect = DEVICE_WIDTH / DEVICE_HEIGHT
 
 
-        print("TARGET_WIDTH", TARGET_WIDTH, "TARGET_WIDTH", TARGET_WIDTH)
+        print("TARGET_WIDTH", TARGET_WIDTH, "TARGET_HEIGHT", TARGET_HEIGHT)
         print("DEVICE_WIDTH", DEVICE_WIDTH, "DEVICE_HEIGHT", DEVICE_HEIGHT)
         if realAspect > gameAspect then
 

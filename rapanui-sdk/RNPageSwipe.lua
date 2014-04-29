@@ -124,7 +124,7 @@ function RNPageSwipe:init()
 
             else
             
-            print("not in valid touch area", event.x, event.y, self.options.touchAreaStartingX, self.options.touchAreaW)
+            --print("not in valid touch area", event.x, event.y, self.options.touchAreaStartingX, self.options.touchAreaW)
 
                 if event.phase == "ended" then
 

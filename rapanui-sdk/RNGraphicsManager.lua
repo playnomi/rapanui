@@ -97,7 +97,7 @@ function RNGraphicsManager:deallocateAllGfxAssets()
             self.gfx[#self.gfx] = nil
             object.deck = nil
             object = nil
-            print("one object was deallocated")
+            --print("one object was deallocated")
             --free memory and OpenGL
         end
     end
