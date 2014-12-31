@@ -50,14 +50,6 @@ if (true) then
     local lwidth, lheight, screenlwidth, screenHeight
     local screenX, screenY
 
-    if config.landscape == false then
-        screenX, screenY = MOAIEnvironment.horizontalResolution, MOAIEnvironment.verticalResolution
-    else
-        screenX, screenY = MOAIEnvironment.horizontalResolution, MOAIEnvironment.verticalResolution
-    end
-
-    print ("screen resolution", screenX, screenY)
-    
     local name = rawget(_G, 'name') -- looking for *global* 'name'
     if name == nil then
         name = "mainwindow"
@@ -65,13 +57,19 @@ if (true) then
     
     if (MOAIEnvironment.osBrand == "iOS") then
         screenX, screenY = MOAIGfxDevice.getViewSize()
+
+        if(MOAIEnvironment.osVersion >= "7.9") then
+            screenX, screenY = MOAIEnvironment.horizontalResolution, MOAIEnvironment.verticalResolution
+        end
     else
+        screenX, screenY = MOAIEnvironment.horizontalResolution, MOAIEnvironment.verticalResolution
         print("setting screen variables for android using MOAIEnvironment.screenWidth, MOAIEnvironment.screenHeight")
     end
 
     print ("new setting screen x", screenX, "screen y", screenY)
 
     if screenX ~= nil then --if physical screen
+        print("setting height for physcial screen", screenX, screenY)
         lwidth, lheight, screenlwidth, screenHeight = screenX, screenY, screenX, screenY
     else
     
@@ -112,7 +110,6 @@ if (true) then
         local gameAspect = TARGET_WIDTH / TARGET_HEIGHT
         local realAspect = DEVICE_WIDTH / DEVICE_HEIGHT
 
-
         print("TARGET_WIDTH", TARGET_WIDTH, "TARGET_HEIGHT", TARGET_HEIGHT)
         print("DEVICE_WIDTH", DEVICE_WIDTH, "DEVICE_HEIGHT", DEVICE_HEIGHT)
         if realAspect > gameAspect then
@@ -138,7 +135,7 @@ if (true) then
         print("openWindow screenlwidth, screenHeight", screenlwidth, screenHeight)
         print ("SCREEN_UNITS_X", SCREEN_UNITS_X, "SCREEN_UNITS_Y", SCREEN_UNITS_Y)
 
-        MOAISim.openWindow(name, screenlwidth, screenHeight)
+        MOAISim.openWindow(name, screenlwidth* 2, screenHeight* 2)
         RNFactory.screen:initWith(SCREEN_UNITS_X, SCREEN_UNITS_Y, screenlwidth, screenHeight)
 
         RNFactory.width = screenlwidth
@@ -150,6 +147,8 @@ if (true) then
         RNFactory.outWidth = config.stretch.graphicsDesign.w
         RNFactory.outHeight = config.stretch.graphicsDesign.h
 
+        --SCREEN_X_OFFSET = 200
+        --SCREEN_Y_OFFSET = 200
         --RNFactory.screenXOffset = SCREEN_X_OFFSET
         --RNFactory.screenYOffset = SCREEN_Y_OFFSET
 
