@@ -69,9 +69,10 @@ function RNPageSwipe:init()
     --touch listener
     self.touch = function(event)
         local self = self
+
         if self.canSwipe == true then
         
-       -- print("can swipe", event.phase, event.x, event.y, self.options.touchAreaStartingX, self.options.touchAreaW)
+            print("can swipe", event.phase, event.x, event.y, self.options.touchAreaStartingX, self.options.touchAreaW)
 
             if event.x > self.options.touchAreaStartingX and event.x < self.options.touchAreaW + self.options.touchAreaStartingX and event.y > self.options.touchAreaStartingY and event.y < self.options.touchAreaH + self.options.touchAreaStartingY then
                 if event.phase == "began" then

@@ -43,10 +43,7 @@ RNFactory.height = 0
 
 function RNFactory.init()
 
-
--- S.S. alternate screen scaling
-if (true) then
-
+    -- S.S. alternate screen scaling
     local lwidth, lheight, screenlwidth, screenHeight
     local screenX, screenY
 
@@ -54,28 +51,30 @@ if (true) then
     if name == nil then
         name = "mainwindow"
     end
-    
+
+    -- for zoom mode on iphone 6+?
+    if(MOAIEnvironment.osVersion >= "8.9" and MOAIEnvironment.osBrand == "iOS") then
+        if (MOAIEnvironment.horizontalResolution == 1704 or MOAIEnvironment.verticalResolution == 1704) then
+            MOAIEnvironment.iosRetinaDisplay = true;
+        end
+    end
+
     if (MOAIEnvironment.osBrand == "iOS") then
         screenX, screenY = MOAIGfxDevice.getViewSize()
+
+        print("We are in iosVersion ", MOAIEnvironment.osVersion, " ", MOAIEnvironment.osVersion >= "7.9", MOAIEnvironment.horizontalResolution,  MOAIEnvironment.verticalResolution, screenX, screenY)
 
         if(MOAIEnvironment.osVersion >= "7.9") then
             screenX, screenY = MOAIEnvironment.horizontalResolution, MOAIEnvironment.verticalResolution
         end
+
     else
         screenX, screenY = MOAIEnvironment.horizontalResolution, MOAIEnvironment.verticalResolution
         print("setting screen variables for android using MOAIEnvironment.screenWidth, MOAIEnvironment.screenHeight")
     end
 
     print ("new setting screen x", screenX, "screen y", screenY)
-
-    if screenX ~= nil then --if physical screen
-        print("setting height for physcial screen", screenX, screenY)
-        lwidth, lheight, screenlwidth, screenHeight = screenX, screenY, screenX, screenY
-    else
-    
-        printError("we should not be setting size according to config")
-        lwidth, lheight, screenlwidth, screenHeight = config.sizes[config.device][1], config.sizes[config.device][2], config.sizes[config.device][3], config.sizes[config.device][4]
-    end
+    lwidth, lheight, screenlwidth, screenHeight = screenX, screenY, screenX, screenY
 
     landscape, device, sizes, screenX, screenY = nil
 
@@ -97,226 +96,63 @@ if (true) then
     RNFactory.screenUnitsY = 0
 
     --if we have to stretch graphics to screen
+    print ("now stretching the screen", config.stretch.graphicsDesign.w, config.stretch.graphicsDesign.h)
 
-    if config.stretch.status == true then
+    TARGET_WIDTH = config.stretch.graphicsDesign.w
+    TARGET_HEIGHT = config.stretch.graphicsDesign.h
+    DEVICE_WIDTH = lwidth
+    DEVICE_HEIGHT = lheight
 
-        print ("now stretching the screen", config.stretch.graphicsDesign.w, config.stretch.graphicsDesign.h)
+    local gameAspect = TARGET_WIDTH / TARGET_HEIGHT
+    local realAspect = DEVICE_WIDTH / DEVICE_HEIGHT
 
-        TARGET_WIDTH = config.stretch.graphicsDesign.w
-        TARGET_HEIGHT = config.stretch.graphicsDesign.h
-        DEVICE_WIDTH = lwidth
-        DEVICE_HEIGHT = lheight
+    print("TARGET_WIDTH", TARGET_WIDTH, "TARGET_HEIGHT", TARGET_HEIGHT)
+    print("DEVICE_WIDTH", DEVICE_WIDTH, "DEVICE_HEIGHT", DEVICE_HEIGHT)
 
-        local gameAspect = TARGET_WIDTH / TARGET_HEIGHT
-        local realAspect = DEVICE_WIDTH / DEVICE_HEIGHT
+    if realAspect > gameAspect then
 
-        print("TARGET_WIDTH", TARGET_WIDTH, "TARGET_HEIGHT", TARGET_HEIGHT)
-        print("DEVICE_WIDTH", DEVICE_WIDTH, "DEVICE_HEIGHT", DEVICE_HEIGHT)
-        if realAspect > gameAspect then
+        print("realAspect > gameAspect", realAspect, gameAspect)
+        SCREEN_UNITS_Y = TARGET_HEIGHT
+        SCREEN_UNITS_X = TARGET_HEIGHT * realAspect
 
-            print("realAspect > gameAspect", realAspect)
-            SCREEN_UNITS_Y = TARGET_HEIGHT
-            SCREEN_UNITS_X = TARGET_HEIGHT * realAspect
+    elseif realAspect < gameAspect then
 
-        elseif realAspect < gameAspect then
-    
-            print("realAspect < gameAspect", realAspect)
-            SCREEN_UNITS_X = TARGET_WIDTH 
-            SCREEN_UNITS_Y = TARGET_WIDTH / realAspect
-
-        else
-
-            print("realAspect = gameAspect")
-            SCREEN_UNITS_X = TARGET_WIDTH 
-            SCREEN_UNITS_Y = TARGET_HEIGHT	
-
-        end
-
-        print("openWindow screenlwidth, screenHeight", screenlwidth, screenHeight)
-        print ("SCREEN_UNITS_X", SCREEN_UNITS_X, "SCREEN_UNITS_Y", SCREEN_UNITS_Y)
-
-        MOAISim.openWindow(name, screenlwidth* 2, screenHeight* 2)
-        RNFactory.screen:initWith(SCREEN_UNITS_X, SCREEN_UNITS_Y, screenlwidth, screenHeight)
-
-        RNFactory.width = screenlwidth
-        RNFactory.height = screenHeight
-
-        contentWidth = SCREEN_UNITS_X
-        contentHeight = SCREEN_UNITS_Y
-        
-        RNFactory.outWidth = config.stretch.graphicsDesign.w
-        RNFactory.outHeight = config.stretch.graphicsDesign.h
-
-        --SCREEN_X_OFFSET = 200
-        --SCREEN_Y_OFFSET = 200
-        --RNFactory.screenXOffset = SCREEN_X_OFFSET
-        --RNFactory.screenYOffset = SCREEN_Y_OFFSET
-
-        RNFactory.screenUnitsX = SCREEN_UNITS_X
-        RNFactory.screenUnitsY = SCREEN_UNITS_Y
+        print("realAspect < gameAspect", realAspect, gameAspect)
+        SCREEN_UNITS_X = TARGET_WIDTH 
+        SCREEN_UNITS_Y = TARGET_WIDTH / realAspect
 
     else
 
-        print("no screen scretch")
-        print("openWindow screenlwidth, screenHeight", screenlwidth, screenHeight)
+        print("realAspect = gameAspect")
+        SCREEN_UNITS_X = TARGET_WIDTH 
+        SCREEN_UNITS_Y = TARGET_HEIGHT	
+
+    end
+
+    print("openWindow screenlwidth, screenHeight", screenlwidth, screenHeight)
+    print ("SCREEN_UNITS_X", SCREEN_UNITS_X, "SCREEN_UNITS_Y", SCREEN_UNITS_Y)
+
+    -- need to reverse screen height and width for ios 9
+    if (MOAIEnvironment.osVersion >= "8.9")  then
 
         MOAISim.openWindow(name, screenlwidth, screenHeight)
-        RNFactory.screen:initWith(lwidth, lheight, screenlwidth, screenHeight)
+        RNFactory.screen:initWith(SCREEN_UNITS_X, SCREEN_UNITS_Y, screenHeight, screenlwidth)
 
-        RNFactory.width = lwidth
-        RNFactory.height = lheight
-
-        contentWidth = lwidth
-        contentHeight = lheight
-        
-        RNFactory.screenUnitsX = contentWidth
-        RNFactory.screenUnitsY = contentHeight
-        
-    end
-
-else
- 
-    local lwidth, lheight, screenlwidth, screenHeight
-    local screenX, screenY = MOAIEnvironment.screenWidth, MOAIEnvironment.screenHeight
-
-    if screenX ~= nil then --if physical screen
-        lwidth, lheight, screenlwidth, screenHeight = screenX, screenY, screenX, screenY
     else
-        lwidth, lheight, screenlwidth, screenHeight = config.sizes[config.device][1], config.sizes[config.device][2], config.sizes[config.device][3], config.sizes[config.device][4]
+
+        MOAISim.openWindow(name, screenlwidth*2, screenHeight*2)
+        RNFactory.screen:initWith(SCREEN_UNITS_X, SCREEN_UNITS_Y, screenlwidth, screenHeight)
+
     end
 
-    if config.landscape == true then -- flip lwidths and Hieghts
-        lwidth, lheight = lheight, lwidth
-        screenlwidth, screenHeight = screenHeight, screenlwidth
-    end
+    contentWidth = SCREEN_UNITS_X
+    contentHeight = SCREEN_UNITS_Y
+    
+    RNFactory.outWidth = config.stretch.graphicsDesign.w
+    RNFactory.outHeight = config.stretch.graphicsDesign.h
 
-    screenX, screenY = nil
-
-    local name = rawget(_G, 'name') -- looking for *global* 'name'
-    if name == nil then
-        name = "mainwindow"
-    end
-
-    --  lwidth, lheight from the SDConfig.lua
-
-    MOAISim.openWindow(name, screenlwidth, screenHeight)
-    RNFactory.screen:initWith(lwidth, lheight, screenlwidth, screenHeight)
-
-    RNFactory.width = lwidth
-    RNFactory.height = lheight
-
-    contentWidth = lwidth
-    contentHeight = lheight
-
-    RNFactory.outWidth = RNFactory.width
-    RNFactory.outHeight = RNFactory.height
-
-    RNFactory.screenXOffset = 0
-    RNFactory.screenYOffset = 0
-
-    RNFactory.screenUnitsX = 0
-    RNFactory.screenUnitsY = 0
-
-    --if we have to stretch graphics to screen
-
-    if config.stretch.status == true then
-        if config.stretch.letterbox == true then
-            local SCREEN_UNITS_X, SCREEN_UNITS_Y
-            SCREEN_UNITS_X = config.stretch.graphicsDesign.w
-            SCREEN_UNITS_Y = config.stretch.graphicsDesign.h
-
-            local SCREEN_X_OFFSET = 0
-            local SCREEN_Y_OFFSET = 0
-
-            local DEVICE_WIDTH, DEVICE_HEIGHT, gameAspect, realAspect
-            DEVICE_WIDTH, DEVICE_HEIGHT = RNFactory.width, RNFactory.height
-
-
-            local gameAspect = SCREEN_UNITS_Y / SCREEN_UNITS_X
-            local realAspect = DEVICE_HEIGHT / DEVICE_WIDTH
-
-
-            local SCREEN_WIDTH, SCREEN_HEIGHT
-
-            if config.stretch.drawOnBlackBars then
-                if realAspect > gameAspect then
-                    SCREEN_UNITS_Y = SCREEN_UNITS_X * realAspect
-                else
-                    SCREEN_UNITS_X = SCREEN_UNITS_Y / realAspect
-                end
-
-                SCREEN_WIDTH = DEVICE_WIDTH
-                SCREEN_HEIGHT = DEVICE_HEIGHT
-            else
-
-                if realAspect > gameAspect then
-                    SCREEN_WIDTH = DEVICE_WIDTH
-                    SCREEN_HEIGHT = DEVICE_WIDTH * gameAspect
-                else
-                    SCREEN_WIDTH = DEVICE_HEIGHT / gameAspect
-                    SCREEN_HEIGHT = DEVICE_HEIGHT
-                end
-
-                if SCREEN_WIDTH < DEVICE_WIDTH then
-                    SCREEN_X_OFFSET = (DEVICE_WIDTH - SCREEN_WIDTH) * 0.5
-                end
-
-                if SCREEN_HEIGHT < DEVICE_HEIGHT then
-                    SCREEN_Y_OFFSET = (DEVICE_HEIGHT - SCREEN_HEIGHT) * 0.5
-                end
-            end
-
-
-            RNFactory.screen.viewport:setSize(SCREEN_X_OFFSET, SCREEN_Y_OFFSET, SCREEN_X_OFFSET + SCREEN_WIDTH, SCREEN_Y_OFFSET + SCREEN_HEIGHT)
-            RNFactory.screen.viewport:setScale(SCREEN_UNITS_X, -SCREEN_UNITS_Y)
-
-            RNFactory.outWidth = config.stretch.graphicsDesign.w
-            RNFactory.outHeight = config.stretch.graphicsDesign.h
-
-            RNFactory.screenXOffset = SCREEN_X_OFFSET
-            RNFactory.screenYOffset = SCREEN_Y_OFFSET
-
-            RNFactory.screenUnitsX = SCREEN_UNITS_X
-            RNFactory.screenUnitsY = SCREEN_UNITS_Y
-        else
-            local SCREEN_UNITS_X, SCREEN_UNITS_Y
-            SCREEN_UNITS_X = config.stretch.graphicsDesign.w
-            SCREEN_UNITS_Y = config.stretch.graphicsDesign.h
-
-            local DEVICE_WIDTH, DEVICE_HEIGHT, gameAspect, realAspect
-            DEVICE_WIDTH, DEVICE_HEIGHT = RNFactory.width, RNFactory.height
-
-
-            local gameAspect = SCREEN_UNITS_Y / SCREEN_UNITS_X
-            local realAspect = DEVICE_HEIGHT / DEVICE_WIDTH
-
-
-            local SCREEN_WIDTH, SCREEN_HEIGHT
-
-            if realAspect > gameAspect then
-                SCREEN_WIDTH = DEVICE_WIDTH
-                SCREEN_HEIGHT = DEVICE_WIDTH * gameAspect
-            else
-                SCREEN_WIDTH = DEVICE_HEIGHT / gameAspect
-                SCREEN_HEIGHT = DEVICE_HEIGHT
-            end
-
-
-            RNFactory.screen.viewport:setSize(0, 0, RNFactory.width, RNFactory.height)
-            RNFactory.screen.viewport:setScale(SCREEN_UNITS_X, -SCREEN_UNITS_Y)
-
-            RNFactory.outWidth = config.stretch.graphicsDesign.w
-            RNFactory.outHeight = config.stretch.graphicsDesign.h
-
-            RNFactory.screenXOffset = 0
-            RNFactory.screenYOffset = 0
-
-            RNFactory.screenUnitsX = SCREEN_UNITS_X
-            RNFactory.screenUnitsY = SCREEN_UNITS_Y
-        end
-    end
-
-end
+    RNFactory.screenUnitsX = SCREEN_UNITS_X
+    RNFactory.screenUnitsY = SCREEN_UNITS_Y
 
     RNFactory.calculateTouchValues()
 
@@ -333,7 +169,6 @@ print("touch values", RNFactory.screenXOffset,
                       RNFactory.width,
                       RNFactory.height)
 
-
     local ofx = RNFactory.screenXOffset
     local ofy = RNFactory.screenYOffset
 
@@ -345,6 +180,8 @@ print("touch values", RNFactory.screenXOffset,
     --screen aspect without calculating offsets
     local Ax = gx / (tx - ofx * 2)
     local Ay = gy / (ty - ofy * 2)
+
+    print("calculated values", ofx, ofy, gx, gy, tx, ty, Ax, Ay)
 
     local statusBar = 0
 
@@ -457,6 +294,8 @@ function RNFactory.createImageFrom(image, layer, params, putOnScreen)
 
     local o = RNObject:new()
     local o, deck = o:initWithImage2(image)
+
+    --print("createImage", o.originalWidth, left, o.originalHeight, top)
 
     o.x = o.originalWidth / 2 + left
     o.y = o.originalHeight / 2 + top

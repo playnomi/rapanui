@@ -333,14 +333,30 @@ function onEvent(eventType, idx, x, y, tapCount)
         if x == nil then TOUCHES = 0 end
 
         if x ~= nil then
-            local x, y = RNFactory.screen.layer:wndToWorld(x, y)
-             --print ("onEvent x y", x, y)
-            event.x, event.y = x, y
+
+            if (MOAIEnvironment.osVersion < "8.9")  then
+                local x, y = RNFactory.screen.layer:wndToWorld(x, y)
+
+                event.x, event.y = x, y
+            else
+
+                -- special logic for ios 9.0
+                event.x, event.y = x, y
+
+                -- tranlate touch for iphone 6 plus
+                if (MOAIEnvironment.horizontalResolution == 1704 or MOAIEnvironment.verticalResolution == 1704) then
+                    event.x = event.x * (1136 / 1704)
+                    event.y = event.y * (1136 / 1704)
+                end
+
+                -- print("event stuff", event.x, event.y)
+
+            end
         end
         local currenTarget = screen:getRNObjectWithHighestLevelOn(x, y);
         event:initWithEventType(eventType)
 
-        --print("touch event", x,y)
+        -- print("touch event", x,y)
 
         local globallisteners = innerInputManager:getGlobalListenersToEvent("touch")
 
@@ -367,12 +383,10 @@ function onEvent(eventType, idx, x, y, tapCount)
             return
         end
 
-
-
         local target
 
         if (eventType == MOAITouchSensor.TOUCH_DOWN) then
-            --print ("MOAITouchSensor.TOUCH_DOWN x y", x, y)
+            print ("MOAITouchSensor.TOUCH_DOWN x y", x, y)
             event.phase = "began"
             if currenTarget ~= nil then
                 LAST_xSTART = x

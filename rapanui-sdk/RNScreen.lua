@@ -47,6 +47,10 @@ function RNScreen:setName(name)
 end
 
 function RNScreen:initWith(width, height, screenWidth, screenHeight)
+
+
+    print("init RNScreen", width, height, screenWidth, screenHeight)
+
     self.width = width
     self.height = height
     self.viewport = MOAIViewport.new()

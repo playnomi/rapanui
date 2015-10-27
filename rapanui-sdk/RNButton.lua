@@ -127,6 +127,8 @@ function RNButton:initWith(imageDefault, imageOver, imageDisabled, rntext)
     end
 
     local function defaultOnTouchDownButton(event)
+
+            print("touch up on button")
         if self.enabled then
             event.target = self
 
@@ -145,9 +147,10 @@ function RNButton:initWith(imageDefault, imageOver, imageDisabled, rntext)
     self.rnImageDefault:setOnTouchDown(defaultOnTouchDownButton)
 
     local function defaultOnTouchUp(event)
+
+            print("touch up on button")
         if self.enabled then
             event.target = self
-
 
             if self.rnImageOver ~= nil then
                 self.rnImageOver:setVisible(false)
